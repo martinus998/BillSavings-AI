@@ -2,29 +2,212 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>BillSavings AI — Find Hidden Fees & Potential Savings</title>
-<meta name="description" content="Upload bills, subscriptions, bank charges and medical statements. BillSavings AI helps surface fees, recurring costs and potential savings opportunities.">
-<meta name="theme-color" content="#031126">
-<style>
-:root{--bg:#020714;--panel:rgba(6,24,51,.88);--line:rgba(53,154,255,.38);--text:#f7fbff;--muted:#a8bfd8;--blue:#1d7cff;--cyan:#32d8ff;--green:#2be2b4;--r:24px;--max:1220px}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 75% 8%,#0b3b78 0,transparent 28%),linear-gradient(180deg,#020714,#04142b 55%,#020714);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}a{text-decoration:none;color:inherit}.wrap{width:min(var(--max),calc(100% - 34px));margin:auto}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:18px;position:relative;z-index:10}.brand{display:flex;align-items:center;gap:11px;font-weight:850;font-size:22px;letter-spacing:-.5px}.logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#79c7ff,#1d7cff 58%,#745cff);box-shadow:0 0 30px rgba(25,120,255,.45);font-weight:950;font-size:23px}.navlinks{display:flex;gap:26px;font-size:14px;color:#dbeaff}.btn{border:1px solid rgba(108,184,255,.4);border-radius:13px;padding:13px 18px;font-weight:780;color:white;background:rgba(4,25,52,.72);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn.primary{border:0;background:linear-gradient(135deg,#1b7cff,#315cff);box-shadow:0 12px 36px rgba(26,111,255,.34)}
-.hero{position:relative;min-height:720px;border:1px solid rgba(60,153,255,.28);border-radius:30px;overflow:hidden;background-image:linear-gradient(90deg,rgba(1,8,22,.98) 0%,rgba(2,12,28,.94) 34%,rgba(2,11,26,.47) 59%,rgba(1,7,17,.18) 100%),url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAEMuMjoyKkM6NjpLR0NPZKZsZFxcZMySmnmm8dT++u3U6eX//////////+Xp////////////////////////////2wBDAUdLS2RXZMRsbMT//+n/////////////////////////////////////////////////////////////////////wgARCAF3AfQDASIAAhEBAxEB/8QAGAABAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQID/9oADAMBAAIQAxAAAAHgssGjLeRrPSzlXaXjO0jk6q5Oo5LAtMtDJoy0MtQjQjQyaMXQy0rJoy1CKSBYuow1C3V1nDYxOiuU3jOggACqIABrAsABYAAFgsBZQKVEqCoWoSoKlC2yKJNRctIhSArI0yNMlsoggCApDVlolItTObFCAABSKIUlWlRLJF0yjTNKgqCpRGjJSLAAAojSstSIsJvG6zNQmmjmIq6shk0kLCWLAolCKJQIFKssTUuTVwl0yLmw2gqCoFkKgqCwAEoKMtDLUJ059bMWygMql1lEQl274l4zsTjrpV4uujjnvE5zvDjO8OLvgwlqwqkNIhELA1Wky1CJpGd4W0tk1CWWmdZjedDLRM2Wtc94J249ozNSpm5l0gJYiw656c5dSROkZLA257LeVrcyKzCNwzaGdQjSMrADdlsAysLLBZbRBLAC2UAlZLAnfh2HOyyLM2q1MVqVnWE9E4M67ziPTjiT0THM6dPOXrjKzbA2wOkwrbFLLIXKNSAC2WgDIqCoKgssLGiKI0jDUIKdOfazmpZNZisq1qSy4sl0IAAFiLBYALmhLaxQsBSEQAXVMLbcNxMgNIysooghpu1eJN465TAV057EtMzQyqVDUQjQCwASgyNMjTI0yLFBCyiLYy0MrKrVObYw3DIDSMqqKII7Y1mVcyy6xuzmFdeWjo59KxOvNMKlJSWU0t3mLTLQy3mMTeJqNIk2MtDKiShYFyiwAK3WuTa5w2MCDVXCkiqhR25A1C4QNZHTn1puZuWEliJWs0A1crNMjTI0xSyWWKIsKABLCywAAArY5twk3kgDQy1CKJrNKIZ0MrK1nWR15bELJCWKllQos6YlKgqCayLc0qQ1kN5lKiLmyrKIojUJQAIKgsCo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") ;background-size:cover;background-position:center;box-shadow:0 45px 130px rgba(0,0,0,.5),0 0 90px rgba(22,117,255,.12)}
-.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 65%,rgba(2,7,20,.88));pointer-events:none}.heroinner{position:relative;z-index:2;min-height:720px;display:flex;align-items:center;padding:70px 54px}.herocopy{max-width:610px}.eyebrow{font-size:12px;letter-spacing:4px;color:#8bc4ff;font-weight:850;text-transform:uppercase;margin-bottom:18px}.hero h1{font-size:clamp(48px,6vw,82px);line-height:.95;letter-spacing:-3px;margin:0 0 24px}.grad{background:linear-gradient(90deg,#fff,#9bd4ff 44%,#4b8cff);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{font-size:18px;line-height:1.65;color:#c6d8ea;max-width:570px}.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.proof{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;color:#b7cae0;font-size:13px}.proof span:before{content:"✓";display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#0d4079;margin-right:7px}.launch{margin:24px auto 0;padding:15px 18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(90deg,rgba(5,29,59,.9),rgba(8,47,92,.9));text-align:center;color:#dcecff}.launch b{color:#fff}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 15px var(--green);margin-right:8px}.section{padding:74px 0}.section h2{font-size:clamp(34px,4vw,52px);letter-spacing:-1.7px;margin:0 0 12px}.lead{color:var(--muted);max-width:720px;line-height:1.7}.features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:30px}.card,.price{border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,rgba(7,31,61,.92),rgba(3,15,34,.9));padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.22)}.icon{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;font-size:22px;background:linear-gradient(145deg,#0ca679,#0d655c)}.card:nth-child(2) .icon{background:linear-gradient(145deg,#8e48ff,#4f2eb7)}.card:nth-child(3) .icon{background:linear-gradient(145deg,#ffb01f,#a75800)}.card:nth-child(4) .icon{background:linear-gradient(145deg,#2188ff,#104fb5)}.card h3{margin:17px 0 8px}.card p{color:#9fb6ce;line-height:1.55;font-size:14px}.review{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;margin-top:28px}.drop{border:1.5px dashed #2f7fc6;border-radius:20px;min-height:250px;display:grid;place-items:center;text-align:center;background:rgba(5,30,60,.7);padding:26px;cursor:pointer}.drop input{display:none}.drop strong{display:block;font-size:21px}.drop p{color:#a7bdd3}.steps{display:grid;gap:10px}.step{border:1px solid rgba(83,156,225,.25);border-radius:14px;background:#071a32;padding:15px;color:#cde0f2}.prices{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}.price.featured{border-color:#2d8dff;box-shadow:0 0 48px rgba(29,124,255,.16);transform:translateY(-8px)}.price h3{font-size:22px}.amount{font-size:42px;font-weight:900;margin:10px 0}.amount small{font-size:14px;color:#91aac4;font-weight:500}.price ul{padding:0;list-style:none;color:#b7cbe0;line-height:2}.price li:before{content:"✓";color:var(--green);margin-right:8px}.footer{padding:35px 0 50px;border-top:1px solid rgba(80,150,215,.16);color:#8fa8c2;font-size:13px}.foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.overlay{position:fixed;inset:0;background:rgba(0,4,12,.8);backdrop-filter:blur(10px);z-index:100;display:none;align-items:center;justify-content:center;padding:18px}.overlay.show{display:flex}.modal{width:min(560px,100%);border:1px solid #1f78c7;background:linear-gradient(160deg,#082347,#031126);border-radius:24px;padding:30px;box-shadow:0 40px 130px rgba(0,0,0,.65);text-align:center}.modal .rocket{font-size:42px}.modal h3{font-size:32px;margin:8px 0 10px}.modal p{color:#b8cde2;line-height:1.65}.modal .btn{width:100%;margin-top:10px}.fileinfo{display:none;margin-top:12px;padding:12px;border-radius:12px;background:#06213b;color:#cfe5fa}.scan{display:none;margin-top:12px}.bar{height:9px;border-radius:999px;background:#041126;overflow:hidden}.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#1978ff,#35d9ff);transition:width 1.2s}.result{display:none;margin-top:12px;padding:14px;border:1px solid rgba(36,172,230,.3);border-radius:13px;background:#062038;color:#d4e9ff}
-@media(max-width:930px){.navlinks{display:none}.hero{background-position:62% center}.heroinner{padding:56px 30px}.features{grid-template-columns:repeat(2,1fr)}.review{grid-template-columns:1fr}.prices{grid-template-columns:1fr}.price.featured{transform:none}}@media(max-width:620px){.wrap{width:min(100% - 22px,var(--max))}.nav{height:66px}.brand{font-size:19px}.logo{width:36px;height:36px}.nav .ghost{display:none}.hero{min-height:610px;background-position:72% center}.heroinner{min-height:610px;padding:42px 20px;background:linear-gradient(90deg,rgba(2,8,20,.97),rgba(2,8,20,.8) 65%,rgba(2,8,20,.38))}.hero h1{font-size:49px;letter-spacing:-2px}.hero p{font-size:16px}.cta .btn{width:100%}.features{grid-template-columns:1fr}.section{padding:54px 0}}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BillSavings AI — Find Hidden Savings in Minutes</title>
+<link rel="stylesheet" href="style1.css"><link rel="stylesheet" href="style2.css">
 </head>
 <body>
-<header class="wrap nav"><a class="brand" href="#top"><span class="logo">B</span>BillSavings AI</a><nav class="navlinks"><a href="#how">How It Works</a><a href="#features">Features</a><a href="#review">Bill Review</a><a href="#pricing">Pricing</a></nav><div><button class="btn primary launchBtn">Get Started →</button></div></header>
-<main id="top">
-<div class="wrap"><section class="hero"><div class="heroinner"><div class="herocopy"><div class="eyebrow">Smarter bills · A brighter tomorrow</div><h1>Find Hidden <span class="grad">Savings in Minutes</span></h1><p>Review bills, subscriptions, bank charges and medical statements in one place. BillSavings AI is designed to help surface recurring costs, billing questions and potential savings opportunities you may be missing.</p><div class="cta"><a class="btn primary" href="#review">⇧ Upload a Bill</a><a class="btn" href="#features">See Potential Savings →</a></div><div class="proof"><span>Fast review flow</span><span>Private weekend preview</span><span>No payment today</span></div></div></div></section><div class="launch"><span class="dot"></span><b>Public preview is open now.</b> Paid access launches Monday.</div></div>
-<section class="section wrap" id="features"><h2>One place to review the bills that drain your budget.</h2><p class="lead">Designed for U.S. consumers who want a simpler way to spot recurring costs, fees and billing questions before deciding what to do next.</p><div class="features"><article class="card"><div class="icon">↻</div><h3>Cancel Subscriptions</h3><p>Surface recurring charges and subscriptions you may no longer want.</p></article><article class="card"><div class="icon">▣</div><h3>Negotiate Bills</h3><p>Organize bill details so you can prepare questions and negotiation steps.</p></article><article class="card"><div class="icon">⌕</div><h3>Detect Hidden Fees</h3><p>Highlight fees and unusual charges that deserve a closer look.</p></article><article class="card"><div class="icon">♡</div><h3>Review Medical Bills</h3><p>Organize medical billing line items and flag questions to raise with the provider or insurer.</p></article></div></section>
-<section class="section wrap" id="review"><h2>Upload. Review. Take action.</h2><p class="lead">The weekend preview lets visitors experience the flow. Production AI and payment processing will be enabled only after the production backend is connected.</p><div class="review"><label class="drop"><input id="file" type="file" accept=".pdf,.png,.jpg,.jpeg"><div><div style="font-size:40px">⇧</div><strong>Upload a bill or statement</strong><p>PDF, JPG or PNG</p><span class="btn primary" style="margin-top:8px">Choose file</span><div class="fileinfo" id="fileinfo"></div><div class="scan" id="scan"><div class="bar"><span id="bar"></span></div></div><div class="result" id="result"></div></div></label><div class="steps"><div class="step"><b>1 · Upload</b><br><small>Choose a bill, statement or recurring charge.</small></div><div class="step"><b>2 · Review</b><br><small>The preview demonstrates the analysis experience.</small></div><div class="step"><b>3 · Take action</b><br><small>Paid action plans launch Monday.</small></div></div></div></section>
-<section class="section wrap" id="pricing"><h2>Simple pricing built around useful results.</h2><p class="lead">No charges are processed in the weekend preview.</p><div class="prices"><article class="price"><h3>Preview</h3><div class="amount">$0</div><p>Explore the public beta.</p><ul><li>Upload flow</li><li>Feature preview</li><li>No card required</li></ul><button class="btn" onclick="location.hash='review'">Try preview</button></article><article class="price featured"><h3>Action Plan</h3><div class="amount">$14.99</div><p>Detailed findings and next-step guidance after launch.</p><ul><li>Full bill review</li><li>Prioritized findings</li><li>Negotiation/dispute draft</li></ul><button class="btn primary launchBtn">Unlock Monday</button></article><article class="price"><h3>BillSavings Plus</h3><div class="amount">$12.99 <small>/mo</small></div><p>Ongoing household bill and subscription checks after launch.</p><ul><li>Multiple scans</li><li>Renewal reminders</li><li>Savings dashboard</li></ul><button class="btn launchBtn">Join Monday</button></article></div></section>
-</main>
-<footer class="footer"><div class="wrap foot"><div>© 2026 BillSavings AI · U.S. consumer beta</div><div>Informational software · Savings are not guaranteed · Not legal, medical or financial advice</div></div></footer>
-<div class="overlay" id="overlay"><div class="modal"><div class="rocket">🚀</div><div style="font-size:12px;letter-spacing:3px;color:#86c3ff;font-weight:850">LAUNCHING MONDAY</div><h3>BillSavings AI goes live Monday.</h3><p>We’re putting the final touches on our advanced automated bill-review experience. BillSavings AI is built to uncover fees, recurring charges and savings opportunities you may be missing — clearly, quickly and in one place.</p><p><b style="color:#fff">Thank you for being here early. We’re excited to welcome you from day one. See you Monday.</b></p><button class="btn primary" id="close">Come Back Monday</button></div></div>
-<script>
-const overlay=document.getElementById('overlay');document.querySelectorAll('.launchBtn').forEach(b=>b.onclick=()=>overlay.classList.add('show'));document.getElementById('close').onclick=()=>overlay.classList.remove('show');overlay.onclick=e=>{if(e.target===overlay)overlay.classList.remove('show')};const file=document.getElementById('file'),info=document.getElementById('fileinfo'),scan=document.getElementById('scan'),bar=document.getElementById('bar'),result=document.getElementById('result');file.onchange=()=>{if(!file.files[0])return;info.style.display='block';info.textContent='Selected: '+file.files[0].name;scan.style.display='block';result.style.display='none';bar.style.width='0';setTimeout(()=>bar.style.width='100%',80);setTimeout(()=>{result.style.display='block';result.innerHTML='<b>Preview complete.</b><br>This weekend build demonstrates the review flow. Production AI analysis and paid action plans launch Monday.'},1400)};
-</script>
-</body></html>
+<div class="live-status"><span class="live-dot"></span><strong>Public preview is live now.</strong><span>Paid checkout launches Monday.</span></div>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="nav">
+      <a class="brand" href="#"><span class="logo">B</span>BillSavings AI</a>
+      <nav class="links">
+        <a href="#works"><span class="ico">⌁</span>How It Works</a>
+        <a href="#features"><span class="ico">✦</span>Find Hidden Fees</a>
+        <a href="#features"><span class="ico">↗</span>Lower My Bills</a>
+        <a href="#features"><span class="ico">❤</span>Medical Bill Review</a>
+        <a href="#pricing"><span class="ico">$</span>Pricing</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="btn sm" href="#pricing">Sign In</a>
+        <button class="btn primary paidBtn" data-plan="launch">Get Started →</button>
+      </div>
+    </div>
+
+
+    <div class="hero-intel">
+      <div class="intel-card">
+        <div class="intel-top"><strong>Savings Trend</strong><span>Weekly signal</span></div>
+        <div class="spark donutMini">
+          <div class="miniRing r1"></div>
+          <div class="miniLegend"><b>Detected savings up</b><span>Stronger saving opportunities across recent scans.</span></div>
+        </div>
+        <div class="intel-foot">Small premium snapshot card for faster visual impact.</div>
+      </div>
+      <div class="intel-card">
+        <div class="intel-top"><strong>Recurring Charges</strong><span>12 active</span></div>
+        <div class="spark donutMini">
+          <div class="miniRing r2"></div>
+          <div class="miniLegend"><b>Subscriptions found</b><span>Recurring costs and renewals surfaced automatically.</span></div>
+        </div>
+        <div class="intel-foot">Cleaner circular metric instead of large bar charts.</div>
+      </div>
+      <div class="intel-card">
+        <div class="intel-top"><strong>Financial Health</strong><span>Premium preview</span></div>
+        <div class="spark donutMini">
+          <div class="miniRing r3"></div>
+          <div class="miniLegend"><b>Strong outlook</b><span>Lower fees, cleaner bills and clearer next actions.</span></div>
+        </div>
+        <div class="intel-foot">Compact insight card to make the top section feel more polished.</div>
+      </div>
+    </div>
+    <div class="hero-main">
+      <div class="left">
+        <div class="kicker">Smarter bills • A brighter tomorrow</div>
+        <h1>Find Hidden <span class="grad">Savings in Minutes</span></h1>
+        <p>Upload your bills, subscriptions, bank charges and medical statements. BillSavings AI is built to uncover waste, hidden fees and better rates in a premium experience that feels trustworthy from the first second.</p>
+        <div class="cta">
+          <a class="btn primary" href="#pricing">⇧ Upload a Bill</a>
+          <a class="btn" href="#features">See Potential Savings →</a>
+        </div>
+        <div class="facts">
+          <div class="fact"><i>🛡</i><div><strong>Private & Secure</strong><br>Your data is encrypted and never shared.</div></div>
+          <div class="fact"><i>⚡</i><div><strong>2-Minute Review</strong><br>Get results in minutes, not weeks.</div></div>
+          <div class="fact"><i>✓</i><div><strong>No Obligation</strong><br>Preview savings before you decide.</div></div>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <div class="dash-head">
+          <div>
+            <div class="tit">Demo savings dashboard</div>
+            <div class="sub">Illustrative preview of how findings can be organized after a bill review.</div>
+          </div>
+          <div class="user"><div class="notif">🔔</div><div class="avatar">A</div></div>
+        </div>
+        <div class="dash-body">
+          <div class="side">
+            <a class="active" href="#"><span>⌂</span>Home</a>
+            <a href="#"><span>🧾</span>My Bills</a>
+            <a href="#"><span>💰</span>Savings</a>
+            <a href="#"><span>↺</span>Subscriptions</a>
+            <a href="#"><span>❤</span>Medical Bills</a>
+            <a href="#"><span>☰</span>Reports</a>
+            <a href="#"><span>☆</span>Recommendations</a>
+            <a href="#"><span>⚙</span>Settings</a>
+          </div>
+          <div class="mainDash">
+            <div style="font-size:10px;color:#7f9dbb;margin:0 0 6px">Sample values shown for interface preview only.</div><div class="stats">
+              <div class="card"><small>Saved so far</small><b>$1,248</b><em>Across 12 bills and subscriptions</em></div>
+              <div class="card green"><small>Potential savings</small><b>$892</b><em>We found 8 more opportunities</em></div>
+              <div class="card purple"><small>Bills analyzed</small><b>24</b><em>Electric, Internet, Mobile, Insurance</em></div>
+            </div>
+            <div class="lower">
+              <div class="activity">
+                <div class="sectionTitle">Recent Activity <span>View all →</span></div>
+                <div class="item"><div class="bullet i1">☏</div><div><strong>Verizon Mobile Bill</strong><small>Found a better plan</small></div><div class="tag ok">Saved $48</div><div class="time">2 days ago</div></div>
+                <div class="item"><div class="bullet i2">↺</div><div><strong>Gym Membership</strong><small>Cancellation completed</small></div><div class="tag ok">Saved $24</div><div class="time">4 days ago</div></div>
+                <div class="item"><div class="bullet i3">❤</div><div><strong>Medical Bill Review</strong><small>Negotiation in progress</small></div><div class="tag wait">In review</div><div class="time">1 week ago</div></div>
+                <div class="item"><div class="bullet i4">$</div><div><strong>Bank Fee Alert</strong><small>Overdraft fee detected</small></div><div class="tag maybe">Potential $39</div><div class="time">1 week ago</div></div>
+              </div>
+              <div class="break">
+                <div class="sectionTitle">Your Savings Breakdown</div>
+                <div class="donut"></div>
+                <div class="legend">
+                  <div><span><i style="background:#41d7ff"></i>Subscriptions</span><strong>38%</strong></div>
+                  <div><span><i style="background:#4e89ff"></i>Bills & Utilities</span><strong>27%</strong></div>
+                  <div><span><i style="background:#9260ff"></i>Medical & Healthcare</span><strong>22%</strong></div>
+                  <div><span><i style="background:#f7b144"></i>Bank Fees</span><strong>8%</strong></div>
+                  <div><span><i style="background:#9caec0"></i>Other</span><strong>5%</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trustbar">
+      <div class="title">Built for U.S. consumers</div>
+      <div class="logos"><span>Subscriptions</span><span>Utilities</span><span>Bank Fees</span><span>Medical Bills</span><span>Internet &amp; Mobile</span><span>Insurance</span></div>
+    </div>
+  </section>
+
+  <section id="features" class="grid4">
+    <div class="fcard"><div class="head"><div class="ic green">↺</div><div class="arr">→</div></div><h3>Cancel Subscriptions</h3><p>Find and cancel unwanted subscriptions and recurring charges you no longer use.</p><a href="#pricing">Take Control →</a></div>
+    <div class="fcard"><div class="head"><div class="ic purple">$</div><div class="arr">→</div></div><h3>Negotiate Bills</h3><p>We help you discover lower rates on internet, cable, cell phone and more.</p><a href="#pricing">Negotiate Now →</a></div>
+    <div class="fcard"><div class="head"><div class="ic gold">Q</div><div class="arr">→</div></div><h3>Detect Hidden Fees</h3><p>We scan for overdraft fees, junk charges and other unnecessary costs.</p><a href="#pricing">Find Hidden Fees →</a></div>
+    <div class="fcard"><div class="head"><div class="ic blue">❤</div><div class="arr">→</div></div><h3>Review Medical Bills</h3><p>Find errors, overcharges and coverage issues in medical bills and insurance claims.</p><a href="#pricing">Review a Bill →</a></div>
+  </section>
+
+  <section class="banner moneyTheme">
+    <div class="content">
+      <div>
+        <h2>Take Control of Your Money. <span class="grad">Build a Brighter Future.</span></h2>
+        <p>BillSavings AI combines advanced technology with a premium financial-product feel, helping everyday Americans review bills, spot waste and move toward lower monthly costs.</p>
+        <a class="btn primary" href="#pricing">Get Started Today →</a>
+        <div class="mini-cols" style="margin-top:18px">
+          <div><strong>More Money for What Matters</strong>Keep more of your hard-earned money and invest in your future.</div>
+          <div><strong>Trusted & Secure</strong>Your information is protected with bank-level security and privacy standards.</div>
+          <div><strong>Real Results</strong>We help surface measurable savings, not just vague suggestions.</div>
+        </div>
+      </div>
+      <div class="glowMount"><div class="ribbonLine">Less financial stress.<br>A brighter tomorrow.</div></div>
+    </div>
+  </section>
+
+  <section id="works" class="steps box">
+    <div class="headLine"><div><h2>How BillSavings AI Works</h2><p>From upload to savings in just a few minutes.</p></div><div class="small">Simple. Secure. Powerful.</div></div>
+    <div class="stepGrid">
+      <div class="step"><div class="n">01</div><h3>Upload Your Bills</h3><p>Upload bills, statements or screenshots in seconds.</p></div>
+      <div class="step"><div class="n">02</div><h3>AI Analyzes Everything</h3><p>We scan for hidden fees, better rates and potential savings opportunities.</p></div>
+      <div class="step"><div class="n">03</div><h3>Get Your Results</h3><p>See a clear breakdown of savings, recommendations and next steps.</p></div>
+      <div class="step"><div class="n">04</div><h3>Take Action & Save</h3><p>Follow guided steps and start saving money with more confidence.</p></div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing box">
+    <div class="headLine"><div><h2>Simple, Transparent Pricing</h2><p>Choose the plan that works for you.</p></div><div class="small">Monthly · Annual · Save 20%</div></div>
+    <div class="pricingGrid">
+      <div class="plan"><div class="k">Free Preview</div><h3>Free Preview</h3><div class="price">$0 <span>/ preview</span></div><ul><li>Upload and analyze bills</li><li>See potential savings</li><li>Limited results preview</li></ul><a class="btn" href="#">Get Started Free</a></div>
+      <div class="plan pop"><div class="badgeTop">Most Popular</div><div class="k">Premium</div><h3>Premium</h3><div class="price">$9.99 <span>/ month</span></div><ul><li>Everything in Free</li><li>Unlock all savings opportunities</li><li>Negotiate bills with our AI</li><li>Medical bill review</li><li>Priority support</li></ul><button class="btn primary paidBtn" data-plan="premium">Get Started</button></div>
+      <div class="plan"><div class="k">Family</div><h3>Family</h3><div class="price">$16.99 <span>/ month</span></div><ul><li>Everything in Premium</li><li>Up to 5 family members</li><li>Family bill management</li><li>Kids & teen account monitoring</li><li>Premium support</li></ul><button class="btn paidBtn" data-plan="family">Get Started</button></div>
+      <div class="plan story"><div class="k">Illustrative Results</div><h3>See potential savings opportunities in a clear visual breakdown</h3><div class="bars"><span></span><span></span><span></span><span></span><span></span></div><p>More money for the moments that matter.</p><div class="quote">Example dashboard values are illustrative and are not guaranteed outcomes.</div></div>
+    </div>
+  </section>
+
+  <section class="launchRow box">
+    <div class="launchGrid">
+      <div class="launchCard"><h3>Launching Monday</h3><p style="color:#b3c7dd;line-height:1.7;margin:0 0 16px">Paid actions are currently locked. Public preview is open this weekend so visitors can explore the platform before the official launch.</p><button class="btn primary paidBtn" data-plan="launch">Join the Waitlist →</button></div>
+      <div class="launchCard"><h3 style="font-size:22px">Example savings scenario</h3><p style="color:#b3c7dd;line-height:1.7">A bill review can surface recurring charges, fees and plan changes worth investigating before the user takes action.</p><div style="margin-top:8px;color:#dbe9f6">Illustrative preview · results vary by bill and provider</div></div>
+      <div class="launchCard"><div class="statsMini"><div class="s"><b>LIVE</b><span>Public preview</span></div><div class="s"><b>USD</b><span>U.S. pricing</span></div><div class="s"><b>MON</b><span>Paid launch target</span></div></div></div>
+    </div>
+  </section>
+
+  <section class="faq box">
+    <div class="headLine"><div><h2>Frequently Asked Questions</h2></div><div class="small">Clear answers</div></div>
+    <div class="faqGrid">
+      <div class="faqItem"><span>Is my data secure?</span><span class="plus">+</span></div>
+      <div class="faqItem"><span>What types of bills can I upload?</span><span class="plus">+</span></div>
+      <div class="faqItem"><span>How much can I really save?</span><span class="plus">+</span></div>
+      <div class="faqItem"><span>When do paid features launch?</span><span class="plus">+</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot">
+      <div><strong>BillSavings AI</strong><br>Smarter Bills. A Brighter Tomorrow.</div>
+      <div>About · Security · Privacy · Terms · Contact</div>
+      <div class="soc"><i>X</i><i>in</i><i>◎</i><i>▶</i></div>
+      <div>© 2026 BillSavings AI<br>All rights reserved.</div>
+    </div>
+  </footer>
+</div>
+
+<div class="payment-overlay" id="paymentOverlay" aria-hidden="true">
+  <div class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+    <div class="lock">🔒</div>
+    <h3 id="paymentTitle">Paid access launches Monday</h3>
+    <p>The public preview is live now. Checkout is intentionally disabled until the merchant account is connected on Monday.</p>
+    <p>No payment will be taken today.</p>
+    <button class="btn primary payment-close" id="paymentClose">Back to BillSavings AI</button>
+    <div class="note">Merchant payout details are kept inside the payment provider and are never stored publicly in this website.</div>
+  </div>
+</div>
+
+
+<script src="app.js"></script>
+</body>
+</html>
