@@ -1,8 +1,8 @@
 // BillSavings AI analytics layer.
-// Add the public GA4 Measurement ID (G-XXXXXXXXXX) below to activate central tracking.
+// Public GA4 Measurement ID for central traffic and purchase-intent tracking.
 // No passwords, API secrets, bank details or private credentials belong in this file.
 (function () {
-  const MEASUREMENT_ID = 'G-REPLACE_ME';
+  const MEASUREMENT_ID = 'G-DKCVZZVG2W';
 
   // Visiting once with ?owner=1 marks this browser as the owner's test device.
   // Owner/test traffic is then excluded from analytics on this browser.
