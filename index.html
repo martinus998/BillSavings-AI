@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style1.css"><link rel="stylesheet" href="style2.css">
 </head>
 <body>
-<div class="live-status"><span class="live-dot"></span><strong>Public preview is live now.</strong><span>Paid checkout launches Monday.</span></div>
+<div class="live-status"><span class="live-dot"></span><strong>Public preview is live now.</strong><span>Paid checkout opens Monday, September 14.</span></div>
 
 <div class="wrap">
   <section class="hero">
@@ -170,9 +170,9 @@
 
   <section class="launchRow box">
     <div class="launchGrid">
-      <div class="launchCard"><h3>Launching Monday</h3><p style="color:#b3c7dd;line-height:1.7;margin:0 0 16px">Paid actions are currently locked. Public preview is open this weekend so visitors can explore the platform before the official launch.</p><button class="btn primary paidBtn" data-plan="launch">Join the Waitlist →</button></div>
+      <div class="launchCard"><h3>Paid launch Monday, September 14</h3><p style="color:#b3c7dd;line-height:1.7;margin:0 0 16px">The public preview is open all weekend. Paid checkout is locked until the official Monday launch, so visitors can explore the platform without being charged.</p><button class="btn primary paidBtn" data-plan="launch">See Monday Launch →</button></div>
       <div class="launchCard"><h3 style="font-size:22px">Example savings scenario</h3><p style="color:#b3c7dd;line-height:1.7">A bill review can surface recurring charges, fees and plan changes worth investigating before the user takes action.</p><div style="margin-top:8px;color:#dbe9f6">Illustrative preview · results vary by bill and provider</div></div>
-      <div class="launchCard"><div class="statsMini"><div class="s"><b>LIVE</b><span>Public preview</span></div><div class="s"><b>USD</b><span>U.S. pricing</span></div><div class="s"><b>MON</b><span>Paid launch target</span></div></div></div>
+      <div class="launchCard"><div class="statsMini"><div class="s"><b>LIVE</b><span>Public preview</span></div><div class="s"><b>USD</b><span>U.S. pricing</span></div><div class="s"><b>SEP 14</b><span>Paid launch</span></div></div></div>
     </div>
   </section>
 
@@ -199,15 +199,30 @@
 <div class="payment-overlay" id="paymentOverlay" aria-hidden="true">
   <div class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
     <div class="lock">🔒</div>
-    <h3 id="paymentTitle">Paid access launches Monday</h3>
-    <p>The public preview is live now. Checkout is intentionally disabled until the merchant account is connected on Monday.</p>
-    <p>No payment will be taken today.</p>
+    <h3 id="paymentTitle">Paid access opens Monday, September 14</h3>
+    <p>BillSavings AI is live in public preview this weekend. Checkout is intentionally locked until the official Monday launch.</p>
+    <p><strong>No card details are requested and no payment can be taken today.</strong></p>
     <button class="btn primary payment-close" id="paymentClose">Back to BillSavings AI</button>
-    <div class="note">Merchant payout details are kept inside the payment provider and are never stored publicly in this website.</div>
+    <div class="note">Merchant payout details stay inside the payment provider and are never stored publicly in this website.</div>
   </div>
 </div>
 
 <script src="analytics.js"></script>
 <script src="app.js"></script>
+<script>
+// Weekend launch lock: keep every checkout route disabled until the official paid launch.
+// Remove this lock only after the merchant account, public checkout links and payout account are verified.
+(function () {
+  if (!window.BILLSAVINGS_CONFIG) return;
+  window.BILLSAVINGS_CONFIG.status = 'weekend-preview-locked';
+  window.BILLSAVINGS_CONFIG.checkoutEnabled = false;
+  window.BILLSAVINGS_CONFIG.checkout = {
+    premium: '',
+    family: '',
+    actionPlan: '',
+    launch: ''
+  };
+})();
+</script>
 </body>
 </html>
