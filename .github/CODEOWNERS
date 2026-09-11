@@ -1,0 +1,7 @@
+# All changes to BillSavings AI are owned by the repository owner.
+* @martinus998
+
+# Security- and deployment-sensitive files
+.github/workflows/ @martinus998
+analytics.js @martinus998
+app.js @martinus998
