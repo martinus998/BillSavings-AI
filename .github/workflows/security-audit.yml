@@ -1,0 +1,58 @@
+name: Security Audit
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Block sensitive files
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden=$(find . -type f \
+            \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.pfx' -o -name '*.jks' -o -name '*.keystore' -o -name 'credentials*.json' -o -name 'service-account*.json' -o -name 'secrets.json' -o -name '*.secret' \) \
+            -not -path './.git/*' \
+            -not -name '.env.example' || true)
+          if [ -n "$forbidden" ]; then
+            echo "::error::Sensitive file types must not be committed:"
+            echo "$forbidden"
+            exit 1
+          fi
+
+      - name: Scan for common live credential formats
+        shell: bash
+        run: |
+          set -euo pipefail
+          failed=0
+          scan() {
+            label="$1"
+            pattern="$2"
+            if git grep -n -E "$pattern" -- . ':(exclude).github/workflows/security-audit.yml' > /tmp/hits 2>/dev/null; then
+              echo "::error::Possible $label detected in repository"
+              cat /tmp/hits
+              failed=1
+            fi
+          }
+          scan "AWS access key" 'A(K|S)IA[0-9A-Z]{16}'
+          scan "GitHub token" 'gh[pousr]_[A-Za-z0-9_]{20,}'
+          scan "GitHub fine-grained token" 'github_pat_[A-Za-z0-9_]{20,}'
+          scan "Stripe live secret" 'sk_live_[A-Za-z0-9]{16,}'
+          scan "Stripe restricted live key" 'rk_live_[A-Za-z0-9]{16,}'
+          scan "OpenAI secret key" 'sk-proj-[A-Za-z0-9_-]{20,}'
+          scan "Slack token" 'xox[baprs]-[A-Za-z0-9-]{10,}'
+          scan "private key" '-----BEGIN ([A-Z0-9 ]+ )?PRIVATE KEY-----'
+          exit "$failed"
