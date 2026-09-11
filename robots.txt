@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://martinus998.github.io/BillSavings-AI/sitemap.xml
