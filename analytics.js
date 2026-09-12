@@ -92,18 +92,18 @@
     }
 
     const facts = document.querySelectorAll('.facts .fact > div');
-    if (facts[0]) facts[0].innerHTML = '<strong>Privacy-first</strong><br>Private document storage will be enabled before sensitive uploads go live.';
+    if (facts[0]) facts[0].innerHTML = '<strong>Privacy-first</strong><br>Private authenticated document storage is now connected for standard bills.';
     if (facts[1]) facts[1].innerHTML = '<strong>Fast Review</strong><br>Designed to turn bills into clear findings and next steps quickly.';
 
     const mini = document.querySelectorAll('.mini-cols > div');
-    if (mini[1]) mini[1].innerHTML = '<strong>Security by Design</strong>Production accounts and uploads are being connected to private authenticated infrastructure.';
+    if (mini[1]) mini[1].innerHTML = '<strong>Security by Design</strong>Accounts and standard bill uploads use private authenticated storage with per-user access rules.';
     if (mini[2]) mini[2].innerHTML = '<strong>Clear Results</strong>See organized findings, potential savings and practical next steps without guaranteed-savings claims.';
 
     const medicalCard = Array.from(document.querySelectorAll('.fcard')).find(card => /Medical Bill/i.test(card.textContent || ''));
     if (medicalCard && !medicalCard.querySelector('.preview-safety-note')) {
       const note = document.createElement('div');
       note.className = 'preview-safety-note';
-      note.textContent = 'Secure medical-document upload is not enabled during public preview.';
+      note.textContent = 'Medical-document upload remains disabled until the health-data compliance review is complete.';
       note.style.cssText = 'margin-top:10px;font-size:10px;line-height:1.4;color:#9fb8d4;';
       medicalCard.appendChild(note);
     }
@@ -115,3 +115,6 @@
     hardenPublicUI();
   }
 })();
+
+// Load the secure account and private-upload layer after the public shell.
+import('./auth.js').catch((error) => console.error('BillSavings secure layer failed to load:', error));
