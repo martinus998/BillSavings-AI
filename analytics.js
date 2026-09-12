@@ -120,3 +120,5 @@
 import('./auth.js').catch((error) => console.error('BillSavings secure layer failed to load:', error));
 // Load the signed-in live text AI review that uses the protected server-side bridge.
 import('./quick-ai.js').catch((error) => console.error('BillSavings quick AI layer failed to load:', error));
+// Load billing entitlement status, checkout return confirmation and plan badge UI.
+import('./billing-status.js').catch((error) => console.error('BillSavings billing layer failed to load:', error));
