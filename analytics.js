@@ -118,3 +118,5 @@
 
 // Load the secure account and private-upload layer after the public shell.
 import('./auth.js').catch((error) => console.error('BillSavings secure layer failed to load:', error));
+// Load the signed-in live text AI review that uses the protected server-side bridge.
+import('./quick-ai.js').catch((error) => console.error('BillSavings quick AI layer failed to load:', error));
