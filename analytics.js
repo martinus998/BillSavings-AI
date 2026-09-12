@@ -23,38 +23,38 @@
     measurementIdConfigured: validId
   };
 
-  if (!validId || isOwner) return;
+  if (validId && !isOwner) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', MEASUREMENT_ID, { send_page_view: false });
 
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
-  window.gtag('js', new Date());
-  window.gtag('config', MEASUREMENT_ID, { send_page_view: false });
+    const tag = document.createElement('script');
+    tag.async = true;
+    tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(MEASUREMENT_ID);
+    document.head.appendChild(tag);
 
-  const tag = document.createElement('script');
-  tag.async = true;
-  tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(MEASUREMENT_ID);
-  document.head.appendChild(tag);
-
-  // Count a real visit once per page load.
-  window.gtag('event', 'page_view', {
-    page_title: document.title,
-    page_location: window.location.href,
-    page_path: window.location.pathname
-  });
-
-  // Purchase-intent tracking: records every click on paid plan buttons,
-  // even while checkout is intentionally disabled during preview.
-  document.addEventListener('click', function (event) {
-    const btn = event.target.closest('.paidBtn');
-    if (!btn) return;
-
-    window.gtag('event', 'purchase_intent', {
-      plan: btn.dataset.plan || 'unknown',
-      button_text: (btn.textContent || '').trim().slice(0, 80),
-      page_path: window.location.pathname,
-      value: 1
+    // Count a real visit once per page load.
+    window.gtag('event', 'page_view', {
+      page_title: document.title,
+      page_location: window.location.href,
+      page_path: window.location.pathname
     });
-  }, true);
+
+    // Purchase-intent tracking: records every click on paid plan buttons,
+    // even while checkout is intentionally disabled during preview.
+    document.addEventListener('click', function (event) {
+      const btn = event.target.closest('.paidBtn');
+      if (!btn) return;
+
+      window.gtag('event', 'purchase_intent', {
+        plan: btn.dataset.plan || 'unknown',
+        button_text: (btn.textContent || '').trim().slice(0, 80),
+        page_path: window.location.pathname,
+        value: 1
+      });
+    }, true);
+  }
 })();
 
 // Launch pricing display. Kept close to major U.S. premium alternatives without
@@ -73,5 +73,45 @@
   if (family) {
     const price = family.querySelector('.price');
     if (price) price.innerHTML = '$13.99 <span>/ month</span>';
+  }
+})();
+
+// Public-launch UI hardening. This keeps legal navigation clickable and avoids
+// stronger security/result claims than the current preview architecture supports.
+(function () {
+  function hardenPublicUI() {
+    const footer = document.querySelector('.foot');
+    if (footer && footer.children[1]) {
+      footer.children[1].innerHTML = [
+        '<a href="security.html">Security</a>',
+        '<a href="privacy.html">Privacy</a>',
+        '<a href="terms.html">Terms</a>',
+        '<a href="refund.html">Refunds</a>',
+        '<a href="contact.html">Contact</a>'
+      ].join(' · ');
+    }
+
+    const facts = document.querySelectorAll('.facts .fact > div');
+    if (facts[0]) facts[0].innerHTML = '<strong>Privacy-first</strong><br>Private document storage will be enabled before sensitive uploads go live.';
+    if (facts[1]) facts[1].innerHTML = '<strong>Fast Review</strong><br>Designed to turn bills into clear findings and next steps quickly.';
+
+    const mini = document.querySelectorAll('.mini-cols > div');
+    if (mini[1]) mini[1].innerHTML = '<strong>Security by Design</strong>Production accounts and uploads are being connected to private authenticated infrastructure.';
+    if (mini[2]) mini[2].innerHTML = '<strong>Clear Results</strong>See organized findings, potential savings and practical next steps without guaranteed-savings claims.';
+
+    const medicalCard = Array.from(document.querySelectorAll('.fcard')).find(card => /Medical Bill/i.test(card.textContent || ''));
+    if (medicalCard && !medicalCard.querySelector('.preview-safety-note')) {
+      const note = document.createElement('div');
+      note.className = 'preview-safety-note';
+      note.textContent = 'Secure medical-document upload is not enabled during public preview.';
+      note.style.cssText = 'margin-top:10px;font-size:10px;line-height:1.4;color:#9fb8d4;';
+      medicalCard.appendChild(note);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hardenPublicUI);
+  } else {
+    hardenPublicUI();
   }
 })();
