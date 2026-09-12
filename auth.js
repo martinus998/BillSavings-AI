@@ -214,13 +214,11 @@ function wireModal() {
     setStatus(status, 'Uploaded securely. Ready for AI review.');
     if (window.gtag) window.gtag('event', 'secure_bill_upload', { category });
 
-    setTimeout(() => {
-      resetViews(modal);
-      $('#bsAiConsent', modal).checked = false;
-      $('#bsAnalysisResult', modal).hidden = true;
-      $('#bsAnalyzeStatus', modal).hidden = true;
-      $('.bs-analysis', modal).classList.add('show');
-    }, 350);
+    resetViews(modal);
+    $('#bsAiConsent', modal).checked = false;
+    $('#bsAnalysisResult', modal).hidden = true;
+    $('#bsAnalyzeStatus', modal).hidden = true;
+    $('.bs-analysis', modal).classList.add('show');
   });
 
   $('#bsAnalyzeBtn', modal).addEventListener('click', async () => {
@@ -247,7 +245,19 @@ function wireModal() {
     if (window.gtag) window.gtag('event', 'bill_analysis_complete', { document_id: lastUploadedDocumentId });
   });
 
-  supabase.auth.onAuthStateChange(() => refreshUI(modal));
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') {
+      lastUploadedDocumentId = null;
+      refreshUI(modal);
+      return;
+    }
+
+    if (event === 'SIGNED_IN') {
+      const uploadInProgress = $('.bs-upload', modal).classList.contains('show');
+      const analysisInProgress = $('.bs-analysis', modal).classList.contains('show');
+      if (!uploadInProgress && !analysisInProgress) refreshUI(modal);
+    }
+  });
 }
 
 addStyles();
