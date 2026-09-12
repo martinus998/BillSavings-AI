@@ -56,3 +56,22 @@
     });
   }, true);
 })();
+
+// Launch pricing display. Kept close to major U.S. premium alternatives without
+// positioning BillSavings AI as a bargain-only product.
+(function () {
+  const plans = [...document.querySelectorAll('#pricing .plan')];
+
+  const premium = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Premium');
+  const family = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
+
+  if (premium) {
+    const price = premium.querySelector('.price');
+    if (price) price.innerHTML = '$8.99 <span>/ month</span>';
+  }
+
+  if (family) {
+    const price = family.querySelector('.price');
+    if (price) price.innerHTML = '$13.99 <span>/ month</span>';
+  }
+})();
