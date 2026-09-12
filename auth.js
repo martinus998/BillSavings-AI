@@ -126,16 +126,37 @@ function wireButtons() {
     signIn.addEventListener('click', e => { e.preventDefault(); openModal('account'); });
   }
 
+  const primaryStart = $('.nav-actions .paidBtn');
+  if (primaryStart) {
+    primaryStart.textContent = 'Analyze My Bill →';
+    document.addEventListener('click', e => {
+      const target = e.target instanceof Element ? e.target.closest('.nav-actions .paidBtn') : null;
+      if (!target) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      openModal('upload');
+    }, true);
+  }
+
   const uploadHero = $$('.cta .btn').find(el => /upload a bill/i.test(el.textContent || ''));
   if (uploadHero) {
     uploadHero.href = '#';
     uploadHero.addEventListener('click', e => { e.preventDefault(); openModal('upload'); });
   }
 
+  const bannerStart = $$('.banner .btn').find(el => /get started today/i.test(el.textContent || ''));
+  if (bannerStart) {
+    bannerStart.textContent = 'Analyze My Bill →';
+    bannerStart.href = '#';
+    bannerStart.addEventListener('click', e => { e.preventDefault(); openModal('upload'); });
+  }
+
   const freeBtn = $$('#pricing .plan .btn').find(el => /get started free/i.test(el.textContent || ''));
   if (freeBtn) {
+    freeBtn.textContent = 'Analyze My Bill Free';
     freeBtn.href = '#';
-    freeBtn.addEventListener('click', e => { e.preventDefault(); openModal('account'); });
+    freeBtn.addEventListener('click', e => { e.preventDefault(); openModal('upload'); });
   }
 }
 
