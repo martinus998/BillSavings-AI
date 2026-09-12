@@ -63,3 +63,17 @@ footer{padding:8px 0 30px}.foot{border-top:1px solid rgba(102,169,245,.16);paddi
 .payment-modal{width:min(560px,100%);border:1px solid rgba(101,174,255,.35);border-radius:26px;padding:28px;background:linear-gradient(160deg,#0b2442,#061525);box-shadow:0 34px 110px rgba(0,0,0,.58);text-align:center}
 .payment-modal .lock{width:64px;height:64px;border-radius:20px;margin:0 auto 14px;display:grid;place-items:center;font-size:30px;background:linear-gradient(145deg,#2f85ff,#25c6c3);box-shadow:0 18px 42px rgba(45,128,255,.26)}
 .payment-modal h3{font-size:30px;margin:0 0 10px}.payment-modal p{color:#b6cae0;line-height:1.65;margin:0 0 16px}.payment-modal .note{font-size:12px;color:#8faac6;margin-top:12px}.payment-close{margin-top:6px}
+
+/* Mobile paint/performance pass: avoid white compositor flashes during fast scroll. */
+html{background-color:#020b17}
+@media (max-width:900px){
+  html,body{background-color:#020b17}
+  body{min-height:100vh;background:linear-gradient(180deg,#020812 0%,#081521 46%,#08111d 100%)}
+  body:before,body:after{display:none!important}
+  .hero:before,.moneyTheme:before{display:none!important}
+  .left:before{filter:none!important}
+  .hero,.dashboard,.fcard,.box,.intel-card,.plan.pop,.top-savings{box-shadow:0 8px 24px rgba(0,0,0,.20)!important}
+  .miniRing,.bars span,.logo,.live-dot{box-shadow:none!important}
+  .payment-overlay,.bs-modal{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
