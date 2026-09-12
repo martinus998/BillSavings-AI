@@ -15,7 +15,8 @@ function installStyles() {
   const style = document.createElement('style');
   style.id = 'bs-quick-ai-styles';
   style.textContent = `
-    .quick-ai{margin:18px auto 26px;max-width:1180px;padding:0 20px}.quick-ai-card{border:1px solid rgba(95,167,255,.25);border-radius:22px;background:linear-gradient(145deg,rgba(8,29,54,.98),rgba(5,17,32,.98));box-shadow:0 22px 60px rgba(0,0,0,.30);padding:22px}.quick-ai-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:22px;align-items:start}.quick-ai-kicker{font-size:10px;font-weight:900;letter-spacing:1.7px;color:#59b7ff}.quick-ai h2{margin:7px 0 9px;font-size:28px;line-height:1.08}.quick-ai p{margin:0;color:#9fb8d4;line-height:1.55}.quick-ai-note{font-size:10px;margin-top:12px!important;color:#7f9dbb!important}.quick-ai-form{display:grid;gap:10px}.quick-ai textarea{min-height:150px;resize:vertical;width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:1px solid rgba(120,185,255,.24);background:#061427;color:#fff;outline:none;font:inherit;line-height:1.45}.quick-ai-consent{display:flex;gap:9px;align-items:flex-start;font-size:11px;color:#b7cbe0;line-height:1.45}.quick-ai button{border:0;border-radius:13px;padding:13px 16px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#2f85ff,#3c6aff);color:#fff}.quick-ai button:disabled{opacity:.55;cursor:not-allowed}.quick-ai-status{display:none;padding:11px 12px;border-radius:12px;border:1px solid rgba(73,198,255,.20);background:rgba(47,133,255,.08);font-size:12px;color:#cae6ff;line-height:1.45}.quick-ai-status.show{display:block}.quick-ai-status.err{border-color:rgba(255,92,92,.25);background:rgba(255,92,92,.08);color:#ffd5d5}.quick-ai-result{display:none;margin-top:12px;padding:15px;border-radius:14px;border:1px solid rgba(105,239,200,.18);background:rgba(10,36,50,.72);white-space:pre-wrap;color:#eaf4ff;line-height:1.55;font-size:13px}.quick-ai-result.show{display:block}.quick-ai-auth{font-size:11px;color:#88a9c9}.quick-ai-auth a{color:#64bcff;font-weight:800;text-decoration:none}@media(max-width:760px){.quick-ai{padding:0 10px}.quick-ai-card{padding:16px}.quick-ai-grid{grid-template-columns:1fr}.quick-ai h2{font-size:22px}.quick-ai textarea{min-height:130px}}
+    .quick-ai{margin:18px auto 26px;max-width:1180px;padding:0 20px}.quick-ai-card{border:1px solid rgba(95,167,255,.25);border-radius:22px;background:linear-gradient(145deg,rgba(8,29,54,.98),rgba(5,17,32,.98));box-shadow:0 22px 60px rgba(0,0,0,.30);padding:22px}.quick-ai-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:22px;align-items:start}.quick-ai-kicker{font-size:10px;font-weight:900;letter-spacing:1.7px;color:#59b7ff}.quick-ai h2{margin:7px 0 9px;font-size:28px;line-height:1.08}.quick-ai p{margin:0;color:#9fb8d4;line-height:1.55}.quick-ai-note{font-size:10px;margin-top:12px!important;color:#7f9dbb!important}.quick-ai-form{display:grid;gap:10px}.quick-ai textarea{min-height:150px;resize:vertical;width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:1px solid rgba(120,185,255,.24);background:#061427;color:#fff;outline:none;font:inherit;line-height:1.45}.quick-ai-consent{display:flex;gap:9px;align-items:flex-start;font-size:11px;color:#b7cbe0;line-height:1.45}.quick-ai button{border:0;border-radius:13px;padding:13px 16px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#2f85ff,#3c6aff);color:#fff}.quick-ai button:disabled{opacity:.55;cursor:not-allowed}.quick-ai-status{display:none;padding:11px 12px;border-radius:12px;border:1px solid rgba(73,198,255,.20);background:rgba(47,133,255,.08);font-size:12px;color:#cae6ff;line-height:1.45}.quick-ai-status.show{display:block}.quick-ai-status.err{border-color:rgba(255,92,92,.25);background:rgba(255,92,92,.08);color:#ffd5d5}.quick-ai-result{display:none;margin-top:12px;padding:15px;border-radius:14px;border:1px solid rgba(105,239,200,.18);background:rgba(10,36,50,.72);white-space:pre-wrap;color:#eaf4ff;line-height:1.55;font-size:13px}.quick-ai-result.show{display:block}.quick-ai-auth{font-size:11px;color:#88a9c9;margin-top:10px}.quick-ai-auth strong{color:#dcecff}.quick-ai-signin{display:inline-flex!important;width:auto!important;margin-top:10px;padding:10px 14px!important;font-size:12px!important}.quick-ai-auth-text{display:block}
+    @media(max-width:760px){.quick-ai{padding:0 10px}.quick-ai-card{padding:16px}.quick-ai-grid{grid-template-columns:1fr}.quick-ai h2{font-size:22px}.quick-ai textarea{min-height:130px}.quick-ai-signin{width:100%!important}}
   `;
   document.head.appendChild(style);
 }
@@ -57,13 +58,23 @@ function setStatus(text, isError = false) {
   el.classList.toggle('err', isError);
 }
 
+function openSignIn() {
+  const signIn = [...document.querySelectorAll('.nav-actions .btn')].find(el => /sign in/i.test(el.textContent || ''));
+  if (signIn) {
+    signIn.click();
+    return;
+  }
+  setStatus('Sign-in is temporarily unavailable. Please refresh the page and try again.', true);
+}
+
 async function refreshAuthHint() {
   const el = $('#quickAiAuth');
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    el.innerHTML = `Signed in as <strong>${escapeHtml(user.email || 'your account')}</strong>. Free quick-review limit: 5 per 24 hours.`;
+    el.innerHTML = `<span class="quick-ai-auth-text">Signed in as <strong>${escapeHtml(user.email || 'your account')}</strong>. Free quick-review limit: 5 per 24 hours.</span>`;
   } else {
-    el.innerHTML = 'Sign in first using the <strong>Sign In</strong> button above. Then return here to run the AI review.';
+    el.innerHTML = `<span class="quick-ai-auth-text">Sign in to run the live AI review.</span><button type="button" class="quick-ai-signin" id="quickAiSignIn">Sign In</button>`;
+    $('#quickAiSignIn')?.addEventListener('click', openSignIn);
   }
 }
 
@@ -81,7 +92,7 @@ async function analyze() {
   if (!consent.checked) return setStatus('Confirm that this is a non-medical bill without sensitive identifiers.', true);
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return setStatus('Please sign in first using the Sign In button.', true);
+  if (!session) return setStatus('Please sign in first using the Sign In button in this section.', true);
 
   button.disabled = true;
   setStatus('Analyzing your bill…');
