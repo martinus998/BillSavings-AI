@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://martinus998.github.io/BillSavings-AI/sitemap.xml
+Sitemap: https://bill-savings-ai.vercel.app/sitemap.xml
