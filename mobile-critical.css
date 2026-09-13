@@ -1,0 +1,60 @@
+/* Critical mobile layout overrides loaded directly by the deployed HTML. */
+@media (max-width:760px){
+  html,body{overflow-x:hidden!important;background-color:#020b17!important}
+  .wrap{width:calc(100% - 12px)!important;margin-left:auto!important;margin-right:auto!important}
+  .live-status{width:calc(100% - 18px)!important;margin:8px auto 0!important;padding:9px 10px!important;border-radius:14px!important;font-size:11px!important;line-height:1.35!important;text-align:center!important}
+  .hero{border-radius:22px!important;overflow:hidden!important;margin-top:8px!important}
+
+  /* Decorative preview blocks are desktop-only. Put the real value proposition first. */
+  .hero-intel,.top-savings{display:none!important}
+
+  .nav{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:8px!important;padding:12px!important}
+  .brand{min-width:0!important;gap:9px!important;font-size:17px!important;line-height:1.05!important}
+  .logo{width:34px!important;height:34px!important;border-radius:10px!important;flex:none!important}
+  .links{display:none!important}
+  .nav-actions{display:block!important;min-width:0!important}
+  .nav-actions .btn.sm{display:none!important}
+  .nav-actions .btn{width:auto!important;min-width:0!important;padding:10px 12px!important;border-radius:12px!important;font-size:12px!important;line-height:1.15!important;white-space:nowrap!important}
+
+  .hero-main{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;padding:4px 12px 12px!important}
+  .left{padding:10px 0 0!important}
+  .left:before{display:none!important}
+  .kicker{font-size:9px!important;letter-spacing:3px!important;margin-bottom:9px!important}
+  .left h1{font-size:clamp(38px,12vw,48px)!important;line-height:.94!important;letter-spacing:-1.7px!important;margin:0 0 12px!important;max-width:none!important}
+  .left p{max-width:none!important;font-size:13px!important;line-height:1.48!important;margin:0 0 12px!important}
+
+  .cta{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin:0 0 11px!important}
+  .cta .btn{width:100%!important;min-width:0!important;padding:10px 8px!important;border-radius:12px!important;font-size:11px!important;line-height:1.2!important;text-align:center!important}
+  .cta .btn:first-child{grid-column:1/-1!important;padding:13px 12px!important;font-size:14px!important}
+
+  .facts{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;margin:4px 0 10px!important}
+  .fact{display:grid!important;justify-items:center!important;align-content:start!important;gap:5px!important;max-width:none!important;min-width:0!important;padding:8px 5px!important;border:1px solid rgba(110,176,255,.14)!important;border-radius:12px!important;background:rgba(7,25,46,.58)!important;text-align:center!important}
+  .fact i{width:25px!important;height:25px!important;font-size:12px!important}
+  .fact>div{font-size:0!important;line-height:1.1!important}
+  .fact strong{display:block!important;font-size:9.5px!important;line-height:1.15!important}
+
+  .dashboard{padding:9px!important;border-radius:18px!important;overflow:hidden!important}
+  .dash-head{padding:4px 3px 9px!important}
+  .dash-head .tit{font-size:13px!important}.dash-head .sub{font-size:9px!important;line-height:1.3!important}
+  .user{gap:6px!important}.avatar{width:30px!important;height:30px!important}.notif{font-size:15px!important}
+  .dash-body{display:block!important}.side{display:none!important}.mainDash{gap:6px!important}
+  .mainDash>div[style]{font-size:8px!important;margin-bottom:4px!important}
+  .stats{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+  .card{min-width:0!important;padding:8px!important;border-radius:12px!important}
+  .card small{font-size:8px!important;line-height:1.15!important;margin-bottom:3px!important}.card b{font-size:19px!important;line-height:1!important;letter-spacing:-.5px!important}.card em{display:none!important}
+  .lower{display:none!important}
+
+  .trustbar{display:grid!important;grid-template-columns:1fr!important;padding:10px 12px 12px!important;gap:8px!important}
+  .trustbar .title{font-size:9px!important;letter-spacing:1.5px!important}.logos{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;font-size:10px!important}
+
+  .grid4,.stepGrid,.pricingGrid,.faqGrid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .grid4>*,.stepGrid>*,.pricingGrid>*,.faqGrid>*{min-width:0!important}
+  .fcard,.step,.plan,.faqItem{padding:13px!important;border-radius:16px!important}
+  .launchGrid{grid-template-columns:1fr!important}
+  .banner .content{grid-template-columns:1fr!important;padding:16px!important}
+  .quick-ai{padding:0 7px!important;margin-top:10px!important}.quick-ai-card{padding:14px!important;border-radius:18px!important}.quick-ai h2{font-size:20px!important}.quick-ai textarea{min-height:115px!important}
+}
+
+@media (max-width:390px){
+  .brand{font-size:16px!important}.nav-actions .btn{font-size:11px!important;padding:9px 10px!important}.left h1{font-size:40px!important}.cta .btn{font-size:10.5px!important}.fact strong{font-size:9px!important}.card b{font-size:17px!important}
+}
