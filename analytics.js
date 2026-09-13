@@ -122,3 +122,5 @@ import('./auth.js').catch((error) => console.error('BillSavings secure layer fai
 import('./quick-ai.js').catch((error) => console.error('BillSavings quick AI layer failed to load:', error));
 // Load billing entitlement status, checkout return confirmation and plan badge UI.
 import('./billing-status.js').catch((error) => console.error('BillSavings billing layer failed to load:', error));
+// Load phone-specific layout polish last so it safely overrides earlier responsive rules.
+import('./mobile-polish.js').catch((error) => console.error('BillSavings mobile polish failed to load:', error));
