@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site
-          cp index.html style1.css style2.css app.js analytics.js auth.js quick-ai.js billing-status.js robots.txt sitemap.xml legal.css privacy.html terms.html refund.html security.html contact.html _site/
+          cp index.html style1.css style2.css app.js analytics.js auth.js quick-ai.js billing-status.js mobile-polish.js robots.txt sitemap.xml legal.css privacy.html terms.html refund.html security.html contact.html _site/
           for f in google*.html; do
             if [ -f "$f" ]; then cp "$f" _site/; fi
           done
