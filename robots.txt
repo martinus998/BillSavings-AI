@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://bill-savings-ai.vercel.app/sitemap.xml
+Sitemap: https://billsavingsai.com/sitemap.xml
