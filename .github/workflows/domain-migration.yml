@@ -1,0 +1,56 @@
+name: One-time domain migration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/domain-migration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-domain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Replace old domain in public SEO files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          old = 'https://bill-savings-ai.vercel.app'
+          new = 'https://billsavingsai.com'
+          changed = []
+          for p in Path('.').iterdir():
+              if not p.is_file():
+                  continue
+              if p.suffix.lower() not in {'.html', '.xml', '.txt', '.json', '.webmanifest'}:
+                  continue
+              try:
+                  text = p.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              if old in text:
+                  p.write_text(text.replace(old, new), encoding='utf-8')
+                  changed.append(str(p))
+          print('Changed:', changed)
+          PY
+
+      - name: Commit migration
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No migration changes needed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m 'Migrate SEO URLs to billsavingsai.com'
+          git push
