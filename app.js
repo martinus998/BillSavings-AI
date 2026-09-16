@@ -1,10 +1,9 @@
-// BillSavings AI public interaction layer.
-// Keep this file lightweight: it runs on every homepage visit, including older Android phones.
-window.BILLSAVINGS_CONFIG = window.BILLSAVINGS_CONFIG || {
-  status: 'preview-live',
+// BillSavings AI lightweight public shell.
+// Keep homepage interactions simple and mobile-safe. Account/upload behavior is handled by auth.js.
+window.BILLSAVINGS_CONFIG = {
+  status: 'live',
   market: 'US',
   currency: 'USD',
-  paidLaunch: 'Monday',
   checkout: {
     premium: '',
     family: '',
@@ -13,80 +12,38 @@ window.BILLSAVINGS_CONFIG = window.BILLSAVINGS_CONFIG || {
   }
 };
 
-(function () {
-  // Full-screen backdrop blur was causing severe touch/compositor lag on some mobile browsers.
-  // Use a simple translucent background instead so taps remain responsive.
-  const style = document.createElement('style');
-  style.id = 'bs-interaction-fix';
-  style.textContent = `
-    .payment-overlay,.bs-modal{
-      backdrop-filter:none!important;
-      -webkit-backdrop-filter:none!important;
-    }
-    button,a,.btn{touch-action:manipulation}
-    @media (max-width:900px){
-      .payment-overlay,.bs-modal{background:rgba(0,7,16,.94)!important}
-      .payment-modal,.bs-panel{box-shadow:0 18px 44px rgba(0,0,0,.48)!important}
-    }
-  `;
-  document.head.appendChild(style);
+// Keep the brand logo lightweight: use the normal image asset instead of an embedded base64 image.
+const logoBox = document.querySelector('.brand .logo');
+if (logoBox) {
+  logoBox.textContent = '';
+  logoBox.style.overflow = 'hidden';
+  logoBox.style.background = '#041126';
+  const logoImg = document.createElement('img');
+  logoImg.src = '/logo.svg';
+  logoImg.alt = 'BillSavings AI';
+  logoImg.width = 40;
+  logoImg.height = 40;
+  logoImg.decoding = 'async';
+  logoImg.style.width = '100%';
+  logoImg.style.height = '100%';
+  logoImg.style.objectFit = 'cover';
+  logoImg.style.borderRadius = 'inherit';
+  logoBox.appendChild(logoImg);
+}
 
-  const payOverlay = document.getElementById('paymentOverlay');
-  const paymentClose = document.getElementById('paymentClose');
+let favicon = document.querySelector('link[rel="icon"]');
+if (!favicon) {
+  favicon = document.createElement('link');
+  favicon.rel = 'icon';
+  document.head.appendChild(favicon);
+}
+favicon.type = 'image/svg+xml';
+favicon.href = '/logo.svg';
 
-  function closePaymentOverlay() {
-    if (!payOverlay) return;
-    payOverlay.classList.remove('show');
-    payOverlay.setAttribute('aria-hidden', 'true');
-  }
-
-  function openPaymentOverlay() {
-    if (!payOverlay) return;
-    payOverlay.classList.add('show');
-    payOverlay.setAttribute('aria-hidden', 'false');
-  }
-
-  document.querySelectorAll('.paidBtn').forEach((btn) => {
-    btn.addEventListener('click', (event) => {
-      event.preventDefault();
-      const plan = btn.dataset.plan || '';
-      const checkout = window.BILLSAVINGS_CONFIG?.checkout || {};
-      const url = checkout[plan];
-      if (url) {
-        window.location.assign(url);
-        return;
-      }
-      openPaymentOverlay();
-    });
-  });
-
-  if (paymentClose) paymentClose.addEventListener('click', closePaymentOverlay);
-  if (payOverlay) {
-    payOverlay.addEventListener('click', (event) => {
-      if (event.target === payOverlay) closePaymentOverlay();
-    });
-  }
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closePaymentOverlay();
-  });
-
-  // Use the site's normal logo file instead of embedding a large base64 image in JavaScript.
-  const logoBox = document.querySelector('.brand .logo');
-  if (logoBox && !logoBox.querySelector('img')) {
-    logoBox.textContent = '';
-    logoBox.style.overflow = 'hidden';
-    logoBox.style.background = '#041126';
-    const logoImg = document.createElement('img');
-    logoImg.src = '/logo.svg';
-    logoImg.alt = 'BillSavings AI';
-    logoImg.width = 64;
-    logoImg.height = 64;
-    logoImg.decoding = 'async';
-    logoImg.style.width = '100%';
-    logoImg.style.height = '100%';
-    logoImg.style.objectFit = 'cover';
-    logoImg.style.borderRadius = 'inherit';
-    logoBox.appendChild(logoImg);
-  }
-})();
+// Never leave a legacy full-screen payment overlay active. Those overlays caused poor behavior on some Android browsers.
+const legacyOverlay = document.getElementById('paymentOverlay');
+if (legacyOverlay) {
+  legacyOverlay.classList.remove('show');
+  legacyOverlay.setAttribute('aria-hidden', 'true');
+  legacyOverlay.style.display = 'none';
+}
