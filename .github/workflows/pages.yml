@@ -26,19 +26,25 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Build safe public artifact
+      - name: Build public artifact
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p _site
-          cp index.html style1.css style2.css app.js analytics.js auth.js quick-ai.js billing-status.js mobile-polish.js mobile-critical.css robots.txt sitemap.xml legal.css privacy.html terms.html refund.html security.html contact.html _site/
-          # Load mobile-critical.css directly from the deployed HTML with a versioned URL.
-          # This avoids stale CDN/browser copies of the older analytics loader on phones.
-          sed -i 's#</head>#<link rel="stylesheet" href="mobile-critical.css?v=20260913-1628"></head>#' _site/index.html
-          sed -i 's#src="analytics.js"#src="analytics.js?v=20260913-1628"#' _site/index.html
-          for f in google*.html; do
+
+          # Deploy every public root HTML/JS/CSS asset so newly added pages such as
+          # start.html are never omitted from production again.
+          for f in *.html *.css *.js *.svg robots.txt sitemap.xml; do
             if [ -f "$f" ]; then cp "$f" _site/; fi
           done
+
+          # Keep critical mobile assets versioned to avoid stale browser copies.
+          if grep -q 'mobile-critical.css' _site/index.html; then
+            true
+          else
+            sed -i 's#</head>#<link rel="stylesheet" href="mobile-critical.css?v=20260916-1505"></head>#' _site/index.html
+          fi
+          sed -i 's#src="analytics.js"#src="analytics.js?v=20260916-1505"#' _site/index.html
 
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
