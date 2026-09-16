@@ -4,7 +4,8 @@ const SUPABASE_URL = 'https://bkyuyqicybqqifenhhux.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_o-RgVfTUjzfne4DC9QcGfQ_4QGg5CVr';
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-const CHECKOUT = {
+const CHECKOUT_ENDPOINT = `${SUPABASE_URL}/functions/v1/billsavings-checkout`;
+const HOSTED_FALLBACK = {
   premium: 'https://buy.stripe.com/fZu6oG9lE65B2Pa9oi1sQ01',
   family: 'https://buy.stripe.com/eVqbJ055o65B3Te8ke1sQ02'
 };
@@ -12,6 +13,7 @@ const CHECKOUT = {
 const $ = id => document.getElementById(id);
 let currentUser = null;
 let lastDocumentId = null;
+let checkoutStarting = false;
 
 function showStatus(text, isError = false) {
   const el = $('status');
@@ -149,13 +151,43 @@ async function analyzeBill() {
   }
 }
 
-function checkout(plan) {
-  if (!currentUser?.email) return showStatus('Sign in first so the paid plan can be linked to your account.', true);
-  const base = CHECKOUT[plan];
-  if (!base) return;
-  const url = new URL(base);
-  url.searchParams.set('prefilled_email', currentUser.email);
-  location.href = url.toString();
+async function claimPaidAccess() {
+  if (!currentUser) return false;
+  try {
+    const { data, error } = await supabase.rpc('claim_billing_entitlement');
+    if (error) throw error;
+    const plan = data?.plan || 'free';
+    const status = data?.status || 'inactive';
+    if ((plan === 'premium' || plan === 'family') && ['active','trialing','past_due'].includes(status)) {
+      showStatus(`${plan === 'family' ? 'Family' : 'Premium'} is active on your account.`);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+async function checkout(plan) {
+  if (checkoutStarting) return;
+  if (!HOSTED_FALLBACK[plan]) return;
+  checkoutStarting = true;
+  clearStatus();
+  $('premiumBtn').disabled = true;
+  $('familyBtn').disabled = true;
+  showStatus(`Opening secure ${plan === 'family' ? 'Family' : 'Premium'} checkout…`);
+
+  try {
+    const response = await fetch(CHECKOUT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ plan })
+    });
+    const data = await response.json().catch(() => ({}));
+    const checkoutUrl = data?.checkout_url || data?.fallback_url || HOSTED_FALLBACK[plan];
+    if (!checkoutUrl) throw new Error('Checkout is unavailable.');
+    location.href = checkoutUrl;
+  } catch (error) {
+    location.href = HOSTED_FALLBACK[plan];
+  }
 }
 
 $('signInBtn').addEventListener('click', signIn);
@@ -169,10 +201,29 @@ $('freeBtn').addEventListener('click', () => {
 $('premiumBtn').addEventListener('click', () => checkout('premium'));
 $('familyBtn').addEventListener('click', () => checkout('family'));
 
-supabase.auth.onAuthStateChange((_event, session) => renderSession(session?.user || null));
+supabase.auth.onAuthStateChange(async (_event, session) => {
+  renderSession(session?.user || null);
+  if (session?.user) await claimPaidAccess();
+});
 await refreshSession();
 
-const requestedPlan = new URLSearchParams(location.search).get('plan');
-if (requestedPlan === 'premium' || requestedPlan === 'family') {
-  showStatus(`You selected ${requestedPlan === 'family' ? 'Family' : 'Premium'}. Sign in first, then tap the plan button again to continue.`);
+const qs = new URLSearchParams(location.search);
+const checkoutState = qs.get('checkout');
+if (checkoutState === 'success' || checkoutState === 'return') {
+  if (currentUser) {
+    showStatus('Payment received. Activating your plan…');
+    let activated = await claimPaidAccess();
+    if (!activated) {
+      await new Promise(r => setTimeout(r, 1800));
+      activated = await claimPaidAccess();
+    }
+    if (!activated) showStatus('Payment received. Your plan is being activated. Refresh in a moment if it is not visible yet.');
+  } else {
+    showStatus('Payment received. Sign in with the same email used at checkout to attach Premium or Family to your account.');
+  }
+} else {
+  const requestedPlan = qs.get('plan');
+  if (requestedPlan === 'premium' || requestedPlan === 'family') {
+    checkout(requestedPlan);
+  }
 }
