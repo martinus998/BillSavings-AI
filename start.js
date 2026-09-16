@@ -28,6 +28,44 @@ function clearStatus() {
   el.classList.remove('show', 'err');
 }
 
+function configurePurchaseFirstLayout() {
+  const pricing = $('pricing');
+  const accountCard = $('loginBox')?.closest('.card');
+  const grid = $('start');
+
+  if (pricing && accountCard && grid && pricing.nextElementSibling !== accountCard) {
+    grid.insertBefore(pricing, accountCard);
+  }
+
+  const pricingTitle = pricing?.querySelector('h2');
+  const pricingCopy = pricing?.querySelector('h2 + p');
+  if (pricingTitle) pricingTitle.textContent = 'Choose your plan';
+  if (pricingCopy) pricingCopy.textContent = 'Choose Premium or Family and continue directly to secure payment. You do not need to sign in before buying.';
+
+  if ($('premiumBtn')) $('premiumBtn').textContent = 'Choose Premium →';
+  if ($('familyBtn')) $('familyBtn').textContent = 'Choose Family →';
+
+  const loginTitle = $('loginBox')?.querySelector('h2');
+  const loginCopy = $('loginBox')?.querySelector('h2 + p');
+  if (loginTitle) loginTitle.textContent = 'Already purchased or returning?';
+  if (loginCopy) loginCopy.textContent = 'Sign in here to access a plan you already bought, or to use the Free Preview. Buying Premium or Family does not require signing in first.';
+  if ($('signInBtn')) $('signInBtn').textContent = 'Send secure access link';
+}
+
+function showPostPaymentAccountPrompt() {
+  const loginBox = $('loginBox');
+  const accountCard = loginBox?.closest('.card');
+  const loginTitle = loginBox?.querySelector('h2');
+  const loginCopy = loginBox?.querySelector('h2 + p');
+
+  if (loginTitle) loginTitle.textContent = 'Payment received — secure your access';
+  if (loginCopy) loginCopy.textContent = 'Enter the same email address you used at checkout. We will send one secure sign-in link so your Premium or Family plan is available now and whenever you return on another device.';
+  if ($('signInBtn')) $('signInBtn').textContent = 'Email my secure access link';
+
+  accountCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => $('email')?.focus(), 450);
+}
+
 function renderSession(user) {
   currentUser = user || null;
   $('loginBox').classList.toggle('hidden', !!user);
@@ -50,14 +88,14 @@ async function signIn() {
   const email = $('email').value.trim();
   if (!/^\S+@\S+\.\S+$/.test(email)) return showStatus('Enter a valid email address.', true);
   $('signInBtn').disabled = true;
-  showStatus('Sending secure sign-in link…');
+  showStatus('Sending your secure access link…');
   try {
     const redirectTo = `${location.origin}/start.html${location.search || ''}`;
     const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
     if (error) throw error;
-    showStatus('Check your email and open the secure sign-in link.');
+    showStatus('Check your inbox for the secure access link. If you just paid, use the same email address you entered at checkout.');
   } catch (error) {
-    showStatus(error?.message || 'Could not send the sign-in link.', true);
+    showStatus(error?.message || 'Could not send the access link.', true);
   } finally {
     $('signInBtn').disabled = false;
   }
@@ -72,6 +110,7 @@ async function signOut() {
     $('analyzeBtn').disabled = true;
     $('result').hidden = true;
     renderSession(null);
+    configurePurchaseFirstLayout();
   }
 }
 
@@ -190,13 +229,18 @@ async function checkout(plan) {
   }
 }
 
+configurePurchaseFirstLayout();
+
 $('signInBtn').addEventListener('click', signIn);
 $('signOutBtn').addEventListener('click', signOut);
 $('uploadBtn').addEventListener('click', uploadBill);
 $('analyzeBtn').addEventListener('click', analyzeBill);
 $('freeBtn').addEventListener('click', () => {
-  if (currentUser) showStatus('Free Preview is ready. Upload a supported bill on the left.');
-  else showStatus('Sign in to use the Free Preview.');
+  if (currentUser) showStatus('Free Preview is ready. Upload a supported bill below.');
+  else {
+    showStatus('Free Preview requires a secure sign-in. Paid plans can be purchased first without signing in.');
+    $('loginBox')?.closest('.card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 });
 $('premiumBtn').addEventListener('click', () => checkout('premium'));
 $('familyBtn').addEventListener('click', () => checkout('family'));
@@ -219,7 +263,8 @@ if (checkoutState === 'success' || checkoutState === 'return') {
     }
     if (!activated) showStatus('Payment received. Your plan is being activated. Refresh in a moment if it is not visible yet.');
   } else {
-    showStatus('Payment received. Sign in with the same email used at checkout to attach Premium or Family to your account.');
+    showStatus('Payment received. One quick step: enter the same email you used at checkout so we can attach your plan and keep it available for future sign-ins.');
+    showPostPaymentAccountPrompt();
   }
 } else {
   const requestedPlan = qs.get('plan');
