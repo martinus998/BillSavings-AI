@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Start BillSavings AI | Upload a Bill</title>
+<meta name="description" content="Sign in securely, upload a supported bill and choose a BillSavings AI plan.">
+<meta name="robots" content="noindex,follow">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:dark;--bg:#03101f;--panel:#071a31;--line:#173a60;--text:#f4f8ff;--muted:#a8bfd8;--blue:#3f8cff;--green:#4ce0b3}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}body{min-height:100vh;padding:18px}.shell{width:min(980px,100%);margin:0 auto}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:900}.brand img{width:38px;height:38px;border-radius:11px}.back{color:#b9d9ff;text-decoration:none;font-size:14px}.hero{padding:22px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#0a2340,#061426);margin-bottom:16px}.hero h1{margin:0 0 8px;font-size:clamp(28px,7vw,46px);line-height:1}.hero p{margin:0;color:var(--muted);line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{border:1px solid var(--line);border-radius:20px;background:var(--panel);padding:20px}.card h2,.card h3{margin-top:0}.muted{color:var(--muted);line-height:1.55}.field{display:grid;gap:7px;margin:13px 0}.field label{font-size:12px;font-weight:800}.field input,.field select{width:100%;padding:13px;border:1px solid #28507b;border-radius:12px;background:#041326;color:#fff;font:inherit}.btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:13px 15px;border:0;border-radius:12px;background:linear-gradient(135deg,#2f85ff,#536dff);color:#fff;font-weight:900;text-decoration:none;cursor:pointer}.btn.secondary{margin-top:9px;background:#0b203b;border:1px solid #28507b}.btn:disabled{opacity:.55}.status{display:none;margin-top:12px;padding:11px;border-radius:12px;background:#0b2942;border:1px solid #27577d;color:#d8edff;font-size:13px;line-height:1.45}.status.show{display:block}.status.err{background:#36151b;border-color:#71303d;color:#ffd6db}.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}.plan{border:1px solid var(--line);border-radius:18px;padding:18px;background:#06172b}.plan.pop{border-color:#4c8dff}.plan .k{font-size:11px;letter-spacing:1.7px;color:#96bce6;text-transform:uppercase;font-weight:900}.plan h3{margin:8px 0}.price{font-size:32px;font-weight:950}.price span{font-size:13px;color:var(--muted)}.plan ul{padding-left:19px;color:#cfdeed;font-size:13px;line-height:1.6;min-height:86px}.chip{display:inline-block;padding:5px 8px;border-radius:999px;background:#0b3b36;color:#7cf2d0;font-size:10px;font-weight:900}.signed{display:none}.signed.show{display:block}.login.hidden{display:none}.result{margin-top:12px;padding:13px;border-radius:12px;background:#081e35;border:1px solid #214d74;white-space:pre-wrap;line-height:1.55;color:#e8f3ff}.small{font-size:11px;color:#82a3c3;line-height:1.45}.divider{height:1px;background:#173a60;margin:18px 0}
+@media(max-width:760px){body{padding:10px}.grid{grid-template-columns:1fr}.plans{grid-template-columns:1fr}.hero,.card{padding:16px;border-radius:17px}.plan ul{min-height:0}.top{align-items:flex-start}.back{font-size:12px}.price{font-size:30px}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <div class="top"><a class="brand" href="/"><img src="/logo.svg" alt="BillSavings AI">BillSavings AI</a><a class="back" href="/">← Back to homepage</a></div>
+  <section class="hero"><span class="chip">STABLE START PAGE</span><h1>Analyze your bill without the heavy homepage interface.</h1><p>Sign in, upload a supported bill, and choose a plan. This page intentionally uses a lighter interface for reliable mobile use.</p></section>
+
+  <div class="grid">
+    <section class="card">
+      <div class="login" id="loginBox">
+        <h2>Secure sign in</h2><p class="muted">Enter your email and we will send a secure sign-in link.</p>
+        <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+        <button class="btn" id="signInBtn">Email me a sign-in link</button>
+      </div>
+      <div class="signed" id="signedBox">
+        <h2>Your account</h2><p class="muted">Signed in as <strong id="userEmail"></strong></p>
+        <div class="field"><label for="category">Bill type</label><select id="category"><option value="general">General bill</option><option value="subscription">Subscription</option><option value="utility">Utility</option><option value="bank_fee">Bank fee</option><option value="insurance">Insurance</option></select></div>
+        <div class="field"><label for="file">PDF or image · max 10 MB</label><input id="file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"></div>
+        <button class="btn" id="uploadBtn">Upload securely</button>
+        <button class="btn secondary" id="signOutBtn">Sign out</button>
+        <div class="divider"></div>
+        <label class="small"><input type="checkbox" id="consent"> I agree that this non-medical document may be sent securely for AI analysis.</label>
+        <button class="btn secondary" id="analyzeBtn" disabled>Analyze uploaded bill</button>
+        <div class="result" id="result" hidden></div>
+      </div>
+      <div class="status" id="status"></div>
+    </section>
+
+    <section class="card">
+      <h2>Pricing</h2><p class="muted">The prices are still here and remain unchanged.</p>
+      <div class="plans">
+        <div class="plan"><div class="k">Free Preview</div><h3>Free</h3><div class="price">$0</div><ul><li>Secure account</li><li>Supported bill upload</li><li>Limited preview</li></ul><button class="btn secondary" id="freeBtn">Use Free Preview</button></div>
+        <div class="plan pop"><div class="k">Premium</div><h3>Premium</h3><div class="price">$8.99 <span>/ month</span></div><ul><li>Complete supported findings</li><li>Detailed recommendations</li><li>Priority support</li></ul><button class="btn" id="premiumBtn">Get Premium</button></div>
+        <div class="plan"><div class="k">Family</div><h3>Family</h3><div class="price">$13.99 <span>/ month</span></div><ul><li>Premium features</li><li>Expanded household workflow</li><li>More supported uploads</li></ul><button class="btn" id="familyBtn">Get Family</button></div>
+      </div>
+      <p class="small" style="margin-top:14px">Medical-document uploads remain disabled. Savings estimates are informational and not guaranteed.</p>
+    </section>
+  </div>
+</main>
+<script type="module" src="/start.js"></script>
+</body>
+</html>
