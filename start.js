@@ -1,33 +1,34 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { createCheckoutAccess } from './checkout-access.js';
+import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, initialAuthReturn } from './account-session.js';
+import { createCheckoutAccess } from './checkout-access.js?v=20260917-password';
+import { createPasswordAuth } from './password-auth.js';
 
-// Capture only callback state before the SDK consumes and clears the fragment.
-const authReturnState = (() => {
-  const params = new URLSearchParams(location.hash.slice(1));
-  const failed = params.has('error') || params.has('error_code');
-  return {
-    failed,
-    expired: params.get('error_code') === 'otp_expired',
-    received: failed || params.has('access_token') || params.has('refresh_token') ||
-      new URLSearchParams(location.search).get('access') === 'ready'
-  };
-})();
-
-const SUPABASE_URL = 'https://bkyuyqicybqqifenhhux.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_o-RgVfTUjzfne4DC9QcGfQ_4QGg5CVr';
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-const CHECKOUT_ENDPOINT = `${SUPABASE_URL}/functions/v1/billsavings-checkout`;
-const HOSTED_FALLBACK = {
-  premium: 'https://buy.stripe.com/fZu6oG9lE65B2Pa9oi1sQ01',
-  family: 'https://buy.stripe.com/eVqbJ055o65B3Te8ke1sQ02'
-};
-
+const authReturnState = initialAuthReturn;
+let recoveryMode = initialAuthReturn.type === 'recovery';
 const $ = id => document.getElementById(id);
 let currentUser = null;
 let lastDocumentId = null;
-let checkoutStarting = false;
 let sessionLoadFailed = false;
+let accountGeneration = 0;
+let activePaidPlan = false;
+let planChecked = false;
+const purchasePreferenceKey = 'billsavings.purchase-plan';
+
+function rememberedPlan() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(purchasePreferenceKey) || 'null');
+    const now = Date.now();
+    if (saved && ['premium', 'family'].includes(saved.plan) && Number.isFinite(saved.expires) &&
+        saved.expires > now && saved.expires <= now + 3600000) return saved.plan;
+    localStorage.removeItem(purchasePreferenceKey);
+  } catch {}
+  return null;
+}
+
+function refreshPurchaseButton() {
+  const plan = currentUser && planChecked && !recoveryMode && !activePaidPlan ? rememberedPlan() : null;
+  $('continuePurchaseBtn').hidden = !plan;
+  if (plan) $('continuePurchaseBtn').textContent = `Continue to ${plan === 'family' ? 'Family' : 'Premium'} →`;
+}
 
 function showStatus(text, isError = false) {
   const el = $('status');
@@ -42,79 +43,82 @@ function clearStatus() {
   el.classList.remove('show', 'err');
 }
 
-function configurePurchaseFirstLayout() {
-  const pricing = $('pricing');
-  const accountCard = $('loginBox')?.closest('.card');
-  const grid = $('start');
+function configureAccountLayout() {
+  const card = $('accountCard');
+  if (card && $('start').firstElementChild !== card) $('start').insertBefore(card, $('pricing'));
+  const title = $('pricing')?.querySelector('h2');
+  const copy = $('pricing')?.querySelector('h2 + p');
+  if (title) title.textContent = 'Choose your plan';
+  if (copy) copy.textContent = 'Choose a plan, set up your account, then pay securely with Stripe. Return with your email and password.';
+}
 
-  if (pricing && accountCard && grid && pricing.nextElementSibling !== accountCard) {
-    grid.insertBefore(pricing, accountCard);
-  }
+function clearAccountView() {
+  accountGeneration++;
+  activePaidPlan = false;
+  planChecked = false;
+  lastDocumentId = null;
+  $('activePlan').textContent = 'Free Preview';
+  $('pricing').hidden = recoveryMode;
+  $('result').hidden = true;
+  $('result').textContent = '';
+  $('file').value = '';
+  $('category').value = 'general';
+  $('consent').checked = false;
+  $('analyzeBtn').disabled = true;
+  $('uploadBtn').disabled = false;
+  $('userEmail').textContent = '';
+  $('continuePurchaseBtn').hidden = true;
+  clearStatus();
+}
 
-  const pricingTitle = pricing?.querySelector('h2');
-  const pricingCopy = pricing?.querySelector('h2 + p');
-  if (pricingTitle) pricingTitle.textContent = 'Choose your plan';
-  if (pricingCopy) pricingCopy.textContent = 'Choose Premium or Family and continue directly to secure payment. You do not need to sign in before buying.';
-
-  if ($('premiumBtn')) $('premiumBtn').textContent = 'Choose Premium →';
-  if ($('familyBtn')) $('familyBtn').textContent = 'Choose Family →';
-
-  const loginTitle = $('loginBox')?.querySelector('h2');
-  const loginCopy = $('loginBox')?.querySelector('h2 + p');
-  if (loginTitle) loginTitle.textContent = 'Already purchased or returning?';
-  if (loginCopy) loginCopy.textContent = 'Sign in here to access a plan you already bought, or to use the Free Preview. Buying Premium or Family does not require signing in first.';
-  if ($('signInBtn')) $('signInBtn').textContent = 'Send secure access link';
+function isCurrentAccount(version, userId) {
+  return version === accountGeneration && currentUser?.id === userId;
 }
 
 function renderSession(user) {
+  if (currentUser?.id !== user?.id) clearAccountView();
   currentUser = user || null;
   $('loginBox').classList.toggle('hidden', !!user);
-  $('signedBox').classList.toggle('show', !!user);
+  $('signedBox').classList.toggle('show', !!user && !recoveryMode);
+  if (recoveryMode) $('loginBox').classList.remove('hidden');
   if (user) $('userEmail').textContent = user.email || 'your account';
+  refreshPurchaseButton();
 }
 
 async function refreshSession() {
   sessionLoadFailed = false;
+  const version = accountGeneration;
   try {
     const { data, error } = await supabase.auth.getSession();
+    if (version !== accountGeneration) return;
     if (error) throw error;
-    renderSession(data?.session?.user || null);
+    if (!data?.session) { renderSession(null); return; }
+    const verified = await supabase.auth.getUser();
+    if (version !== accountGeneration) return;
+    if (verified.error || !verified.data?.user?.id || !verified.data.user.email_confirmed_at || verified.data.user.is_anonymous) {
+      throw new Error('A confirmed account is required.');
+    }
+    renderSession(verified.data.user);
   } catch (error) {
+    if (version !== accountGeneration) return;
     sessionLoadFailed = true;
     renderSession(null);
     showStatus('Could not load the secure account session. Please refresh and try again.', true);
   }
 }
 
-async function signIn() {
-  clearStatus();
-  const email = $('email').value.trim();
-  if (!/^\S+@\S+\.\S+$/.test(email)) return showStatus('Enter a valid email address.', true);
-  $('signInBtn').disabled = true;
-  showStatus('Sending your secure access link…');
-  try {
-    const redirectTo = `${location.origin}/start.html?access=ready`;
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
-    if (error) throw error;
-    showStatus('Check your inbox for the secure access link. If you just paid, use the same email address you entered at checkout.');
-  } catch (error) {
-    showStatus(error?.message || 'Could not send the access link.', true);
-  } finally {
-    $('signInBtn').disabled = false;
-  }
-}
-
 async function signOut() {
   clearStatus();
   try {
-    await supabase.auth.signOut();
-  } finally {
+    const result = await supabase.auth.signOut({scope: 'local'});
+    if (result?.error) throw result.error;
     accessFlow.reset();
-    lastDocumentId = null;
-    $('analyzeBtn').disabled = true;
-    $('result').hidden = true;
+    recoveryMode = false;
+    clearAccountView();
     renderSession(null);
-    configurePurchaseFirstLayout();
+    configureAccountLayout();
+  } catch {
+    showStatus('Could not sign out. Please try again.', true);
   }
 }
 
@@ -131,14 +135,17 @@ async function uploadBill() {
   $('uploadBtn').disabled = true;
   showStatus('Uploading securely…');
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-100);
-  const objectPath = `${currentUser.id}/${crypto.randomUUID()}-${safeName}`;
+  const userId = currentUser.id;
+  const version = accountGeneration;
+  const objectPath = `${userId}/${crypto.randomUUID()}-${safeName}`;
 
   try {
     const { error: uploadError } = await supabase.storage.from('user-bills').upload(objectPath, file, { upsert: false, contentType: file.type });
+    if (!isCurrentAccount(version, userId)) return;
     if (uploadError) throw uploadError;
 
     const { data: row, error: rowError } = await supabase.from('documents').insert({
-      user_id: currentUser.id,
+      user_id: userId,
       storage_path: objectPath,
       original_name: file.name,
       mime_type: file.type,
@@ -146,6 +153,7 @@ async function uploadBill() {
       category,
       status: 'uploaded'
     }).select('id').single();
+    if (!isCurrentAccount(version, userId)) return;
 
     if (rowError || !row?.id) {
       await supabase.storage.from('user-bills').remove([objectPath]);
@@ -157,22 +165,26 @@ async function uploadBill() {
     $('analyzeBtn').disabled = false;
     showStatus('Upload complete. You can now analyze the bill.');
   } catch (error) {
-    showStatus(error?.message || 'Upload failed.', true);
+    if (isCurrentAccount(version, userId)) showStatus(error?.message || 'Upload failed.', true);
   } finally {
-    $('uploadBtn').disabled = false;
+    if (isCurrentAccount(version, userId)) $('uploadBtn').disabled = false;
   }
 }
 
 async function analyzeBill() {
   clearStatus();
+  if (!currentUser) return showStatus('Sign in first.', true);
   if (!lastDocumentId) return showStatus('Upload a bill first.', true);
   if (!$('consent').checked) return showStatus('Confirm AI-processing consent first.', true);
 
   $('analyzeBtn').disabled = true;
   $('result').hidden = true;
   showStatus('Analyzing your bill…');
+  const userId = currentUser.id;
+  const version = accountGeneration;
   try {
     const { data, error } = await supabase.functions.invoke('analyze-bill', { body: { document_id: lastDocumentId, consent: true } });
+    if (!isCurrentAccount(version, userId)) return;
     if (error) throw error;
     if (data?.code === 'AI_NOT_CONFIGURED') throw new Error('AI analysis is not configured yet.');
     if (!data?.ok || !data?.result) throw new Error(data?.error || 'Analysis failed.');
@@ -188,75 +200,110 @@ async function analyzeBill() {
     $('result').hidden = false;
     showStatus('Analysis complete.');
   } catch (error) {
-    showStatus(error?.message || 'Analysis is temporarily unavailable.', true);
+    if (isCurrentAccount(version, userId)) showStatus(error?.message || 'Analysis is temporarily unavailable.', true);
   } finally {
-    $('analyzeBtn').disabled = false;
+    if (isCurrentAccount(version, userId)) $('analyzeBtn').disabled = false;
   }
 }
 
 async function claimPaidAccess() {
   if (!currentUser) return false;
+  planChecked = false;
+  refreshPurchaseButton();
+  const userId = currentUser.id;
+  const version = accountGeneration;
   try {
     const { data, error } = await supabase.rpc('claim_billing_entitlement');
-    if (error) throw error;
+    if (!isCurrentAccount(version, userId)) return false;
+    if (error || typeof data?.plan !== 'string' || typeof data?.status !== 'string') {
+      throw new Error('Account check unavailable');
+    }
+    planChecked = true;
     const plan = data?.plan || 'free';
     const status = data?.status || 'inactive';
     if ((plan === 'premium' || plan === 'family') && ['active','trialing','past_due'].includes(status)) {
-      showStatus(`${plan === 'family' ? 'Family' : 'Premium'} is active on your account.`);
+      const name = plan === 'family' ? 'Family' : 'Premium';
+      activePaidPlan = true;
+      try { localStorage.removeItem(purchasePreferenceKey); } catch {}
+      refreshPurchaseButton();
+      $('activePlan').textContent = `${name} · Active`;
+      $('pricing').hidden = true;
+      showStatus(`${name} is active. Upload your bill to get started.`);
       return true;
     }
   } catch {}
+  if (isCurrentAccount(version, userId)) {
+    activePaidPlan = false;
+    $('activePlan').textContent = 'Free Preview';
+    $('pricing').hidden = recoveryMode;
+    refreshPurchaseButton();
+  }
   return false;
 }
 
-async function checkout(plan) {
-  if (checkoutStarting) return;
-  if (!HOSTED_FALLBACK[plan]) return;
-  checkoutStarting = true;
-  clearStatus();
-  $('premiumBtn').disabled = true;
-  $('familyBtn').disabled = true;
-  showStatus(`Opening secure ${plan === 'family' ? 'Family' : 'Premium'} checkout…`);
-
-  try {
-    const response = await fetch(CHECKOUT_ENDPOINT, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ plan })
-    });
-    const data = await response.json().catch(() => ({}));
-    const checkoutUrl = data?.checkout_url || data?.fallback_url || HOSTED_FALLBACK[plan];
-    if (!checkoutUrl) throw new Error('Checkout is unavailable.');
-    location.href = checkoutUrl;
-  } catch (error) {
-    location.href = HOSTED_FALLBACK[plan];
-  }
+function checkout(plan) {
+  if (!['premium', 'family'].includes(plan) || recoveryMode) return;
+  // The account step keeps credentials separate from Stripe's payment fields.
+  location.href = `/checkout.html?plan=${plan}`;
 }
 
-configurePurchaseFirstLayout();
-const accessFlow = createCheckoutAccess({supabase, publicKey: SUPABASE_PUBLISHABLE_KEY,
-  endpoint: `${SUPABASE_URL}/functions/v1/billing-access`, claimPaidAccess});
+configureAccountLayout();
+const accessFlow = createCheckoutAccess({
+  supabase, publicKey: SUPABASE_PUBLISHABLE_KEY,
+  endpoint: `${SUPABASE_URL}/functions/v1/billing-access`,
+  claimPaidAccess
+});
+const passwordAuth = createPasswordAuth({supabase, root: $('loginBox'),
+  requirePasswordConfirmation: false,
+  redirectTo: `${location.origin}/start.html?access=ready`,
+  onStatus: (message, kind) => message ? showStatus(message, kind === 'error') : clearStatus(),
+  onRecovery: () => { recoveryMode = true; renderSession(currentUser); $('pricing').hidden = true; },
+  onAuthenticated: async () => {
+    recoveryMode = false;
+    $('pricing').hidden = false;
+    await refreshSession();
+    if (currentUser) {
+      if (accessFlow.hasCheckout()) await accessFlow.onSignIn();
+      else await claimPaidAccess();
+      $('accountCard').scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+  }
+});
 
-$('signInBtn').addEventListener('click', signIn);
 $('signOutBtn').addEventListener('click', signOut);
 $('uploadBtn').addEventListener('click', uploadBill);
 $('analyzeBtn').addEventListener('click', analyzeBill);
 $('freeBtn').addEventListener('click', () => {
   if (currentUser) showStatus('Free Preview is ready. Upload a supported bill below.');
   else {
-    showStatus('Free Preview requires a secure sign-in. Paid plans can be purchased first without signing in.');
+    showStatus('Sign in or create your account to use Free Preview.');
     $('loginBox')?.closest('.card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 });
 $('premiumBtn').addEventListener('click', () => checkout('premium'));
 $('familyBtn').addEventListener('click', () => checkout('family'));
+$('continuePurchaseBtn').addEventListener('click', () => {
+  if (!currentUser || !planChecked || activePaidPlan || recoveryMode) return;
+  const plan = rememberedPlan();
+  if (plan) checkout(plan);
+  else refreshPurchaseButton();
+});
 
 let pageReady = false;
 supabase.auth.onAuthStateChange((_event, session) => {
-  renderSession(session?.user || null);
-  // Supabase holds an auth lock during this callback. RPCs run after it exits.
-  if (pageReady && session?.user && _event === 'SIGNED_IN') {
-    setTimeout(() => { void accessFlow.onSignIn(); }, 0);
+  passwordAuth.handleAuthEvent(_event, session);
+  if (_event === 'PASSWORD_RECOVERY') recoveryMode = true;
+  // Cross-tab SDK events do not establish this tab's identity.
+  if (_event === 'SIGNED_OUT') {
+    recoveryMode = false;
+    accessFlow.reset();
+    clearAccountView();
+    renderSession(null);
+  }
+  if (pageReady && session?.user && _event === 'SIGNED_IN' && !passwordAuth.busy && !recoveryMode) {
+    setTimeout(() => { void refreshSession().then(() => {
+      if (currentUser) return accessFlow.hasCheckout() ? accessFlow.onSignIn() : claimPaidAccess();
+    }); }, 0);
   }
 });
 await refreshSession();
@@ -265,25 +312,18 @@ pageReady = true;
 const qs = new URLSearchParams(location.search);
 if (authReturnState.failed || sessionLoadFailed) {
   accessFlow.reset();
-  if (authReturnState.failed) {
-    // The SDK has finished. Remove error details without showing untrusted text.
-    history.replaceState(null, '', `${location.pathname}${location.search}`);
-  }
+  if (authReturnState.failed) history.replaceState(null, '', `${location.pathname}${location.search}`);
   const message = authReturnState.expired
-    ? 'This sign-in link has expired or has already been used. Request a new secure link below.'
-    : authReturnState.received
-      ? 'We could not complete sign-in. Request a new secure link below.'
-      : 'Could not load the secure account session. Please refresh and try again.';
+    ? 'This email link has expired or has already been used. Sign in with your password or request a new reset link.'
+    : 'We could not complete sign-in. Sign in with your password or request a new reset link.';
   showStatus(message, true);
+} else if (recoveryMode) {
+  await passwordAuth.showRecovery();
 } else {
   await accessFlow.start();
-  if (currentUser && !accessFlow.hasCheckout()) await claimPaidAccess();
-  if (accessFlow.hasCheckout() || qs.get('access') === 'ready' || authReturnState.received) {
-    // A return flag alone never confirms payment or unlocks paid functionality.
-  } else {
+  const paidAccess = currentUser && !accessFlow.hasCheckout() ? await claimPaidAccess() : false;
+  if (!paidAccess && !accessFlow.hasCheckout() && qs.get('access') !== 'ready' && !authReturnState.received) {
     const requestedPlan = qs.get('plan');
-    if (requestedPlan === 'premium' || requestedPlan === 'family') {
-      checkout(requestedPlan);
-    }
+    if (requestedPlan === 'premium' || requestedPlan === 'family') checkout(requestedPlan);
   }
 }
