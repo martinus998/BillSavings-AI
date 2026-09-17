@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const app = fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8');
 const analytics = fs.readFileSync(new URL('../analytics.js', import.meta.url), 'utf8');
 const help = fs.readFileSync(new URL('../customer-help.js', import.meta.url), 'utf8');
+const onboarding = fs.readFileSync(new URL('../paid-onboarding.js', import.meta.url), 'utf8');
 
 test('homepage explains the live Premium action workflow', () => {
   assert.match(app, /FIND → FIX → TRACK/);
@@ -17,7 +18,17 @@ test('homepage explains the live Premium action workflow', () => {
 test('start page copy stays aligned with Premium action features', () => {
   assert.match(help, /Fix-it call and email scripts/);
   assert.match(help, /Next-bill follow-up tracking/);
-  assert.match(help, /analytics\.js\?v=20260917-funnel1/);
+  assert.match(help, /analytics\.js\?v=20260917-funnel2/);
+});
+
+test('paid onboarding is guidance-only and follows the savings workflow', () => {
+  assert.match(help, /paid-onboarding\.js\?v=20260917-onboard1/);
+  assert.match(onboarding, /Premium\|Family/);
+  assert.match(onboarding, /Upload/);
+  assert.match(onboarding, /Review/);
+  assert.match(onboarding, /Fix it/);
+  assert.match(onboarding, /Track/);
+  assert.doesNotMatch(onboarding, /stripe|checkout|claim_billing_entitlement|supabase/i);
 });
 
 test('funnel analytics measure actions without reading user content', () => {
