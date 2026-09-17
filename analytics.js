@@ -56,12 +56,13 @@
   if (family?.querySelector('.price')) family.querySelector('.price').innerHTML = '$13.99 <span>/ month</span>';
 })();
 
-// Conversion funnel events. No email, document content, provider name or other user-entered data is sent.
+// Conversion funnel events. No user-entered values are sent.
 (function () {
+  if (window.BILLSAVINGS_AUTH_RETURN === true) return;
   if (!window.BILLSAVINGS_ANALYTICS?.active || typeof window.gtag !== 'function') return;
 
   const send = (name, params = {}) => {
-    const safe = { ...params, page_path: location.pathname };
+    const safe = { ...params, page_path: window.location?.pathname || '' };
     try { window.gtag('event', name, safe); } catch {}
   };
 
@@ -73,7 +74,8 @@
     fn();
   };
 
-  if (location.pathname === '/' || location.pathname.endsWith('/index.html')) {
+  const path = window.location?.pathname || '';
+  if (path === '/' || path.endsWith('/index.html')) {
     once('bs_home_view_v1', () => send('bs_home_view'));
     const pricing = document.getElementById('pricing');
     if (pricing && 'IntersectionObserver' in window) {
@@ -86,10 +88,13 @@
     }
   }
 
-  if (location.pathname.endsWith('/start.html')) {
-    once('bs_start_view_v1', () => send('bs_start_view', {
-      entry_mode: new URLSearchParams(location.search).has('signin') ? 'signin' : (new URLSearchParams(location.search).has('free') ? 'free' : 'plans')
-    }));
+  if (path.endsWith('/start.html')) {
+    once('bs_start_view_v1', () => {
+      const startParams = new URLSearchParams(window.location?.search || '');
+      send('bs_start_view', {
+        entry_mode: startParams.has('signin') ? 'signin' : (startParams.has('free') ? 'free' : 'plans')
+      });
+    });
   }
 
   document.addEventListener('click', event => {
