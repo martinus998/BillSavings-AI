@@ -113,9 +113,88 @@ test('provider login details are not disclosed and missing sessions cannot authe
   assert.equal(missing.authenticated.length, 0);
 });
 
+test('signup provider failures give useful safe guidance without authenticating or retaining credentials', async () => {
+  const cases = [
+    [{ code: 'over_email_send_rate_limit', status: 429 }, /Too many account emails.*wait/i],
+    [{ code: 'over_request_rate_limit', status: 429 }, /Too many attempts.*few minutes/i],
+    [{ status: 429 }, /Too many attempts.*few minutes/i],
+    [{ code: 'email_address_not_authorized' }, /confirmation emails.*unavailable.*support/i],
+    [{ code: 'signup_disabled' }, /registration.*unavailable.*support/i],
+    [{ code: 'email_provider_disabled' }, /Email and password accounts.*unavailable.*support/i],
+    [{ code: 'weak_password' }, /stronger, unique password.*10 characters/i],
+    [{ name: 'AuthWeakPasswordError' }, /stronger, unique password.*10 characters/i],
+    [{ code: 'email_address_invalid' }, /valid email address.*receive email/i]
+  ];
+  for (const [details, expected] of cases) {
+    for (const thrown of [false, true]) {
+      const error = { ...details, message: 'Private provider detail owner@example.com supplied-password' };
+      const ui = setup({ signUp: async () => {
+        if (thrown) throw error;
+        return { data: { session: { user: { id: 'must-not-authenticate' } } }, error };
+      } }, { initialMode: 'signup' });
+      ui.credentials('supplied-password');
+      await ui.submit();
+      assert.match(ui.notices.at(-1).text, expected);
+      assert.equal(ui.notices.at(-1).kind, 'error');
+      assert.doesNotMatch(JSON.stringify(ui.notices), /Private provider|owner@example|supplied-password/);
+      assert.equal(ui.authenticated.length, 0);
+      assert.equal(ui.fields.authPassword.value, '');
+      assert.equal(ui.fields.authConfirm.value, '');
+      assert.equal(ui.controller.busy, false);
+      assert.equal(ui.calls.length, 1);
+    }
+  }
+});
+
+test('unknown and account-existence errors retain the same safe signup fallback', async () => {
+  const messages = [];
+  for (const code of ['user_already_exists', 'email_exists', 'user_not_found', 'unexpected_failure', 'toString', undefined]) {
+    for (const thrown of [false, true]) {
+      const error = { code, message: 'Private result for owner@example.com' };
+      const ui = setup({ signUp: async () => {
+        if (thrown) throw error;
+        return { data: {}, error };
+      } }, { initialMode: 'signup' });
+      ui.credentials();
+      await ui.submit();
+      messages.push(ui.notices.at(-1).text);
+      assert.match(messages.at(-1), /Could not create the account/);
+      assert.doesNotMatch(JSON.stringify(ui.notices), /Private result|owner@example/);
+      assert.equal(ui.authenticated.length, 0);
+      assert.equal(ui.fields.authPassword.value, '');
+    }
+  }
+  assert.equal(new Set(messages).size, 1);
+});
+
+test('login rate limits are actionable while account existence stays undisclosed', async () => {
+  for (const thrown of [false, true]) {
+    const error = { code: 'over_request_rate_limit', status: 429, message: 'Private provider detail' };
+    const ui = setup({ signInWithPassword: async () => {
+      if (thrown) throw error;
+      return { data: {}, error };
+    } });
+    ui.credentials();
+    await ui.submit();
+    assert.match(ui.notices.at(-1).text, /Too many attempts.*few minutes/i);
+    assert.equal(ui.authenticated.length, 0);
+  }
+  const messages = [];
+  for (const code of ['invalid_credentials', 'email_not_confirmed', 'user_not_found', 'email_exists']) {
+    const ui = setup({ signInWithPassword: async () => ({ data: {}, error: { code } }) });
+    ui.credentials();
+    await ui.submit();
+    messages.push(ui.notices.at(-1).text);
+  }
+  assert.equal(new Set(messages).size, 1);
+});
+
 test('reset sends only on form submit and returns indistinguishable feedback', async () => {
   const messages = [];
-  for (const result of [{ data: {}, error: null }, { data: {}, error: { message: 'Unknown email' } }, new Error('Network error')]) {
+  const errors = ['over_email_send_rate_limit', 'over_request_rate_limit', 'email_address_not_authorized', 'signup_disabled', 'user_not_found']
+    .map(code => Object.assign(new Error('Private provider detail owner@example.com'), { code, status: 429 }));
+  for (const result of [{ data: {}, error: null }, { data: {}, error: { message: 'Unknown email' } },
+    new Error('Network error'), ...errors, ...errors.map(error => ({ data: {}, error }))]) {
     const ui = setup({ resetPasswordForEmail: async () => { if (result instanceof Error) throw result; return result; } });
     ui.fields.authForgotBtn.dispatch('click');
     assert.equal(ui.calls.length, 0);
@@ -129,6 +208,19 @@ test('reset sends only on form submit and returns indistinguishable feedback', a
     messages.push(ui.notices.at(-1).text);
   }
   assert.equal(new Set(messages).size, 1);
+});
+
+test('verified recovery preserves weak-password guidance without accepting a failed password change', async () => {
+  const ui = setup({ updateUser: async () => ({ data: {}, error: { code: 'weak_password', message: 'Private supplied-password' } }) });
+  assert.equal(await ui.controller.showRecovery(ui.session), true);
+  ui.credentials();
+  await ui.submit();
+  assert.match(ui.notices.at(-1).text, /stronger, unique password.*10 characters/i);
+  assert.doesNotMatch(JSON.stringify(ui.notices), /Private supplied-password/);
+  assert.equal(ui.authenticated.length, 0);
+  assert.equal(ui.calls.some(call => call.name === 'getSession'), false);
+  assert.equal(ui.fields.authPassword.value, '');
+  assert.equal(ui.fields.authConfirm.value, '');
 });
 
 test('caller-supplied session cannot enable password recovery without server verification', async () => {
