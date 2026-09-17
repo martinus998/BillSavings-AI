@@ -37,7 +37,7 @@ const BILL_PORTAL_URL = 'https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1s
       if (document.querySelector('script[data-follow-up]')) return;
       const followUp = document.createElement('script');
       followUp.type = 'module';
-      followUp.src = '/follow-up.js?v=20260917-follow1';
+      followUp.src = '/follow-up.js?v=20260917-follow2';
       followUp.dataset.followUp = '1';
       document.head.appendChild(followUp);
     }, { once: true });
