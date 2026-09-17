@@ -10,21 +10,17 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     const intel = hero?.querySelector('.hero-intel');
     const topSavings = hero?.querySelector('.top-savings');
 
-    // Put the strongest value proposition and demo dashboard first.
-    // Final order: nav -> main hero/demo -> compact metrics -> savings preview -> trust bar.
     if (hero && nav && heroMain) {
       nav.insertAdjacentElement('afterend', heroMain);
       if (intel) heroMain.insertAdjacentElement('afterend', intel);
       if (topSavings && intel) intel.insertAdjacentElement('afterend', topSavings);
     }
 
-    // Remove stale launch messaging now that checkout is live.
     const liveStatus = document.querySelector('.live-status');
     if (liveStatus) {
       liveStatus.innerHTML = '<span class="live-dot"></span><strong>BillSavings AI is live.</strong><span>Secure Premium and Family checkout is available now.</span>';
     }
 
-    // Deeper premium navy treatment without changing the existing layout/components.
     if (!document.getElementById('homepage-polish-style')) {
       const style = document.createElement('style');
       style.id = 'homepage-polish-style';
@@ -118,7 +114,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     const plan = btn.dataset.plan === 'family' ? 'family' : 'premium';
     btn.addEventListener('click', function (e) {
       e.preventDefault();
-      go('/checkout.html?plan=' + plan);
+      go('/checkout.html?plan=' + plan + '&build=20260917-signup-v2');
     });
   });
 })();
