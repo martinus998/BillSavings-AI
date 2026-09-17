@@ -10,18 +10,18 @@ const code = stripTypeScriptTypes(source.replace(/^import .*;\n/gm, ''), {mode: 
 const signingSecret = 'synthetic-webhook-secret';
 
 function setup(options = {}) {
-  const events = new Map(), subscriptions = new Map(), pending = new Map();
+  const events = new Map(), subscriptions = new Map(), pending = new Map(), receipts = new Map();
   const writes = [];
   let fail = options.fail || '', handler;
   const client = {
     rpc: async () => ({data: options.newUser ? null : 'synthetic-user', error: fail === 'rpc' ? {code: 'XX000'} : null}),
     from(table) {
-      let operation = 'select', value, filters = [];
+      let operation = 'select', value, filters = [], ignoreDuplicates = false;
       const builder = {
         select() {return this;},
         eq(key, val) {filters.push([key, val]); return this;},
         maybeSingle() {return this;},
-        upsert(v) {operation = 'upsert'; value = v; return this;},
+        upsert(v, options = {}) {operation = 'upsert'; value = v; ignoreDuplicates = options.ignoreDuplicates; return this;},
         update(v) {operation = 'update'; value = v; return this;},
         delete() {operation = 'delete'; return this;},
         insert(v) {operation = 'insert'; value = v; return this;},
@@ -29,10 +29,11 @@ function setup(options = {}) {
           const key = table + '.' + operation;
           const run = async () => {
             if(fail === key) return {data: null, error: {code: 'XX000'}};
-            const records = table === 'billing_webhook_events' ? events : table === 'billing_subscriptions' ? subscriptions : pending;
+            const records = table === 'billing_webhook_events' ? events : table === 'billing_subscriptions' ? subscriptions : table === 'billing_checkout_access' ? receipts : pending;
             if(operation === 'select') return {data: [...records.values()].find(r => filters.every(([k,v]) => r[k] === v)) || null, error: null};
             writes.push(key);
-            if(operation === 'upsert' || operation === 'insert') records.set(value.id || value.user_id || value.stripe_subscription_id, {...value});
+            const recordKey = value?.id || value?.user_id || value?.stripe_subscription_id || value?.session_hash;
+            if((operation === 'upsert' || operation === 'insert') && !(ignoreDuplicates && records.has(recordKey))) records.set(recordKey, {...value});
             if(operation === 'update') for(const row of records.values()) if(filters.every(([k,v]) => row[k] === v)) Object.assign(row, value);
             if(operation === 'delete') for(const [k,row] of records) if(filters.every(([f,v]) => row[f] === v)) records.delete(k);
             return {data: null, error: null};
@@ -54,11 +55,12 @@ function setup(options = {}) {
     const signature = createHmac('sha256', signingSecret).update(timestamp + '.' + body).digest('hex');
     return handler(new Request('https://example.invalid/webhook', {method: 'POST', body, headers: {'stripe-signature': 't=' + timestamp + ',v1=' + signature}}));
   };
-  return {send, handler, events, subscriptions, pending, writes, recover: () => {fail = '';}};
+  return {send, handler, events, subscriptions, pending, receipts, writes, recover: () => {fail = '';}};
 }
 
 function checkout(id = 'synthetic-event') {
   return {id, livemode: true, type: 'checkout.session.completed', data: {object: {
+    id: 'cs_live_syntheticCheckoutSession123456789',
     customer_details: {email: 'audit@example.invalid'}, customer: 'synthetic-customer', subscription: 'synthetic-subscription',
     payment_link: 'plink_1UFUpgBVUFmkZjNklE0nIKnS', payment_status: 'paid', status: 'complete'
   }}};
@@ -67,6 +69,7 @@ function checkout(id = 'synthetic-event') {
 for(const [failure, newUser] of [
   ['billing_webhook_events.select', false], ['rpc', false], ['billing_subscriptions.upsert', false],
   ['billing_pending_entitlements.delete', false], ['billing_pending_entitlements.upsert', true],
+  ['billing_checkout_access.upsert', false],
   ['billing_webhook_events.insert', false]
 ]) {
   test('retry safely after ' + failure, async () => {
@@ -89,6 +92,33 @@ test('unpaid completed session does not activate a plan', async () => {
   event.data.object.payment_status = 'unpaid';
   assert.equal((await x.send(event)).status, 200);
   assert.equal(x.subscriptions.get('synthetic-user').status, 'incomplete');
+  assert.equal(x.receipts.size, 0);
+});
+
+test('receipt contains only hashed proof and verified email; retries preserve delivery state', async () => {
+  const x = setup();
+  await x.send(checkout());
+  const [hash, receipt] = [...x.receipts][0];
+  assert.match(hash, /^[a-f0-9]{64}$/);
+  assert.equal(receipt.email, 'audit@example.invalid');
+  assert.ok(!JSON.stringify(receipt).includes('cs_live_'));
+  receipt.attempts = 3;
+  receipt.email_sent_at = 'synthetic-sent';
+  await x.send(checkout('another-event-for-same-session'));
+  assert.equal(x.receipts.size, 1);
+  assert.equal(x.receipts.get(hash).attempts, 3);
+  assert.equal(x.receipts.get(hash).email_sent_at, 'synthetic-sent');
+});
+
+test('delayed successful payment produces the access receipt', async () => {
+  const x = setup(), event = checkout();
+  event.data.object.payment_status = 'unpaid';
+  await x.send(event);
+  event.id = 'async-payment'; event.type = 'checkout.session.async_payment_succeeded';
+  event.data.object.payment_status = 'paid';
+  await x.send(event);
+  assert.equal(x.subscriptions.get('synthetic-user').status, 'active');
+  assert.equal(x.receipts.size, 1);
 });
 
 test('invalid signature is rejected before database processing', async () => {

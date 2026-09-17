@@ -20,7 +20,9 @@ The connected Stripe app refused portal creation due to its API-key permissions;
 
 ## Remaining checks
 
-The portal configuration currently has no default return URL, privacy URL or terms URL. In **Business information**, set:
+The owner saved the following portal details on September 17, 2026. The return
+URL was verified through the Stripe API; screenshots show the legal links inherited
+from public business information (null configuration overrides do not mean missing links):
 
 - Return URL: `https://billsavingsai.com/start.html`
 - Privacy policy: `https://billsavingsai.com/privacy.html`
@@ -28,7 +30,13 @@ The portal configuration currently has no default return URL, privacy URL or ter
 
 With an authorized test customer, verify email delivery and cancellation at period end. Confirm the subscription webhook preserves access until the paid period ends and revokes access when Stripe cancels it. A new complete signup, upload, AI analysis and purchase flow is not yet verified.
 
-A Dashboard screenshot also showed a negative-EUR-balance warning. The connected API denied `GetBalance`; the balance and cause remain unverified and need checking in the owner's Dashboard. No balance or payout settings were changed.
+Dashboard screenshots show EUR -0.10 available and -0.53 incoming, matching a
+0.53 processing fee plus 0.05 Radar and 0.05 Billing fees after a full refund.
+The owner deferred a 0.63 SEPA top-up; no transfer or receipt of funds is confirmed.
+The selected top-up screen was the refunds/disputes reserve, so it has not been
+verified that this route clears the existing fee balance. The connected API
+denied `GetBalance`; no alternate credential was used. Monday automatic payouts
+to Revolut describe outgoing payouts, not confirmation of a bank debit.
 
 Official setup: https://docs.stripe.com/customer-management/activate-no-code-customer-portal
 

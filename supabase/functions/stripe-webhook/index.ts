@@ -59,7 +59,7 @@ Deno.serve(async(req:Request)=>{
   try{
     const already=await checked(admin.from("billing_webhook_events").select("id").eq("id",eventId).maybeSingle(),"read webhook receipt");
     if(already)return json({ok:true,duplicate:true});
-    if(type==="checkout.session.completed"){
+    if(type==="checkout.session.completed"||type==="checkout.session.async_payment_succeeded"){
       const email=String(obj?.customer_details?.email||obj?.customer_email||"").trim().toLowerCase();
       const subscriptionId=idOf(obj?.subscription); const customerId=idOf(obj?.customer); const plan=planFromObject(obj);
       const activeStatus=(obj?.payment_status==="paid"||obj?.payment_status==="no_payment_required")?"active":"incomplete";
@@ -71,6 +71,14 @@ Deno.serve(async(req:Request)=>{
           await checked(admin.from("billing_pending_entitlements").delete().eq("stripe_subscription_id",subscriptionId),"remove claimed entitlement");
         }else{
           await checked(admin.from("billing_pending_entitlements").upsert({email,stripe_customer_id:customerId,stripe_subscription_id:subscriptionId,plan,status:activeStatus,livemode:true,updated_at:new Date().toISOString()},{onConflict:"stripe_subscription_id"}),"save pending entitlement");
+        }
+        // A verified paid session may request an email, never an authenticated
+        // session. Keep only its hash and preserve delivery state across retries.
+        if(activeStatus==="active"){
+          const sessionId=String(obj?.id||"");
+          if(!/^cs_live_[A-Za-z0-9]{20,240}$/.test(sessionId))throw new Error("Missing checkout session identity");
+          const sessionHash=hex(await crypto.subtle.digest("SHA-256",encoder.encode(sessionId)));
+          await checked(admin.from("billing_checkout_access").upsert({session_hash:sessionHash,email},{onConflict:"session_hash",ignoreDuplicates:true}),"save checkout access receipt");
         }
       }
     }

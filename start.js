@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createCheckoutAccess } from './checkout-access.js';
 
 const SUPABASE_URL = 'https://bkyuyqicybqqifenhhux.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_o-RgVfTUjzfne4DC9QcGfQ_4QGg5CVr';
@@ -52,20 +53,6 @@ function configurePurchaseFirstLayout() {
   if ($('signInBtn')) $('signInBtn').textContent = 'Send secure access link';
 }
 
-function showPostPaymentAccountPrompt() {
-  const loginBox = $('loginBox');
-  const accountCard = loginBox?.closest('.card');
-  const loginTitle = loginBox?.querySelector('h2');
-  const loginCopy = loginBox?.querySelector('h2 + p');
-
-  if (loginTitle) loginTitle.textContent = 'Payment received — secure your access';
-  if (loginCopy) loginCopy.textContent = 'Enter the same email address you used at checkout. We will send one secure sign-in link so your Premium or Family plan is available now and whenever you return on another device.';
-  if ($('signInBtn')) $('signInBtn').textContent = 'Email my secure access link';
-
-  accountCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  setTimeout(() => $('email')?.focus(), 450);
-}
-
 function renderSession(user) {
   currentUser = user || null;
   $('loginBox').classList.toggle('hidden', !!user);
@@ -90,7 +77,7 @@ async function signIn() {
   $('signInBtn').disabled = true;
   showStatus('Sending your secure access link…');
   try {
-    const redirectTo = `${location.origin}/start.html${location.search || ''}`;
+    const redirectTo = `${location.origin}/start.html?access=ready`;
     const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
     if (error) throw error;
     showStatus('Check your inbox for the secure access link. If you just paid, use the same email address you entered at checkout.');
@@ -106,6 +93,7 @@ async function signOut() {
   try {
     await supabase.auth.signOut();
   } finally {
+    accessFlow.reset();
     lastDocumentId = null;
     $('analyzeBtn').disabled = true;
     $('result').hidden = true;
@@ -230,6 +218,8 @@ async function checkout(plan) {
 }
 
 configurePurchaseFirstLayout();
+const accessFlow = createCheckoutAccess({supabase, publicKey: SUPABASE_PUBLISHABLE_KEY,
+  endpoint: `${SUPABASE_URL}/functions/v1/billing-access`, claimPaidAccess});
 
 $('signInBtn').addEventListener('click', signIn);
 $('signOutBtn').addEventListener('click', signOut);
@@ -245,27 +235,22 @@ $('freeBtn').addEventListener('click', () => {
 $('premiumBtn').addEventListener('click', () => checkout('premium'));
 $('familyBtn').addEventListener('click', () => checkout('family'));
 
-supabase.auth.onAuthStateChange(async (_event, session) => {
+let pageReady = false;
+supabase.auth.onAuthStateChange((_event, session) => {
   renderSession(session?.user || null);
-  if (session?.user) await claimPaidAccess();
+  // Supabase holds an auth lock during this callback. RPCs run after it exits.
+  if (pageReady && session?.user && _event === 'SIGNED_IN') {
+    setTimeout(() => { void accessFlow.onSignIn(); }, 0);
+  }
 });
 await refreshSession();
+pageReady = true;
 
 const qs = new URLSearchParams(location.search);
-const checkoutState = qs.get('checkout');
-if (checkoutState === 'success' || checkoutState === 'return') {
-  if (currentUser) {
-    showStatus('Payment received. Activating your plan…');
-    let activated = await claimPaidAccess();
-    if (!activated) {
-      await new Promise(r => setTimeout(r, 1800));
-      activated = await claimPaidAccess();
-    }
-    if (!activated) showStatus('Payment received. Your plan is being activated. Refresh in a moment if it is not visible yet.');
-  } else {
-    showStatus('Payment received. One quick step: enter the same email you used at checkout so we can attach your plan and keep it available for future sign-ins.');
-    showPostPaymentAccountPrompt();
-  }
+await accessFlow.start();
+if (currentUser && !accessFlow.hasCheckout()) await claimPaidAccess();
+if (accessFlow.hasCheckout() || qs.get('access') === 'ready') {
+  // A return flag alone never confirms payment or unlocks paid functionality.
 } else {
   const requestedPlan = qs.get('plan');
   if (requestedPlan === 'premium' || requestedPlan === 'family') {

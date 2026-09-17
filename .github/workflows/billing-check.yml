@@ -16,4 +16,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/stripe-webhook.test.mjs
+      - run: node --test tests/*.test.mjs
