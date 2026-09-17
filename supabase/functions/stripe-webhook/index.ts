@@ -3,6 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const PREMIUM_PAYMENT_LINK = "plink_1UFUpgBVUFmkZjNklE0nIKnS";
 const FAMILY_PAYMENT_LINK = "plink_1UFUprBVUFmkZjNk4wfvTX5i";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const BLOCKING_STATUSES = new Set(["active","trialing","past_due","unpaid","incomplete","paused"]);
 
 const encoder = new TextEncoder();
 function json(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } }); }
@@ -42,6 +44,52 @@ async function checked<T>(operation: PromiseLike<{data: T; error: any}>, label: 
   return data;
 }
 
+async function accountCheckoutOwner(admin:any, obj:any): Promise<{userId:string; email:string; subscription:any}|null> {
+  const metadata=obj?.metadata;
+  if(!metadata||!Object.prototype.hasOwnProperty.call(metadata,"account_checkout"))return null;
+  const userId=metadata.user_id;
+  // This marker is written only by the authenticated account-checkout endpoint.
+  // Malformed tagged sessions must never fall back to the editable Stripe email.
+  if(metadata.account_checkout!=="v1"||typeof userId!=="string"||!UUID.test(userId)||
+     obj.client_reference_id!==userId||!["premium","family"].includes(metadata.plan)){
+    throw new Error("Invalid account checkout identity");
+  }
+  // Capture before the Auth lookup so a concurrent billing lifecycle event cannot
+  // be replaced by a checkout result based on an older account snapshot.
+  const subscription=await checked(admin.from("billing_subscriptions")
+    .select("stripe_subscription_id,status,livemode,updated_at").eq("user_id",userId).maybeSingle(),"read account subscription");
+  const data:any=await checked(admin.auth.admin.getUserById(userId),"verify checkout account");
+  const user=data?.user;
+  const email=typeof user?.email==="string"?user.email.trim().toLowerCase():"";
+  if(!user||user.id!==userId||user.is_anonymous||!user.email_confirmed_at||!email){
+    throw new Error("Account checkout requires a confirmed account");
+  }
+  return {userId,email,subscription};
+}
+
+async function saveAccountSubscription(admin:any, owner:any, row:any): Promise<void> {
+  const existing=owner.subscription;
+  if(existing?.livemode===true&&existing.stripe_subscription_id!==row.stripe_subscription_id&&
+     BLOCKING_STATUSES.has(existing.status))throw new Error("Account already has another subscription");
+  // A late checkout event is not authority to undo a later renewal, failed
+  // invoice or cancellation for a subscription already recorded on the account.
+  if(existing?.livemode===true&&existing.stripe_subscription_id===row.stripe_subscription_id&&
+     existing.status!=="incomplete")return;
+  let operation;
+  if(existing){
+    if(!existing.updated_at)throw new Error("Missing subscription version");
+    operation=admin.from("billing_subscriptions").update(row)
+      .eq("user_id",owner.userId).eq("updated_at",existing.updated_at);
+    operation=existing.stripe_subscription_id
+      ?operation.eq("stripe_subscription_id",existing.stripe_subscription_id)
+      :operation.is("stripe_subscription_id",null);
+  }else{
+    operation=admin.from("billing_subscriptions").upsert(row,{onConflict:"user_id",ignoreDuplicates:true});
+  }
+  const saved=await checked(operation.select("user_id").maybeSingle(),"save account subscription");
+  if(!saved)throw new Error("Account subscription changed during checkout");
+}
+
 Deno.serve(async(req:Request)=>{
   if(req.method!=="POST")return json({error:"Method not allowed"},405);
   const supabaseUrl=Deno.env.get("SUPABASE_URL");
@@ -60,14 +108,17 @@ Deno.serve(async(req:Request)=>{
     const already=await checked(admin.from("billing_webhook_events").select("id").eq("id",eventId).maybeSingle(),"read webhook receipt");
     if(already)return json({ok:true,duplicate:true});
     if(type==="checkout.session.completed"||type==="checkout.session.async_payment_succeeded"){
-      const email=String(obj?.customer_details?.email||obj?.customer_email||"").trim().toLowerCase();
+      const accountOwner=await accountCheckoutOwner(admin,obj);
+      const email=accountOwner?.email||String(obj?.customer_details?.email||obj?.customer_email||"").trim().toLowerCase();
       const subscriptionId=idOf(obj?.subscription); const customerId=idOf(obj?.customer); const plan=planFromObject(obj);
       const activeStatus=(obj?.payment_status==="paid"||obj?.payment_status==="no_payment_required")?"active":"incomplete";
       if(plan==="premium"||plan==="family"){
         if(!email||!subscriptionId||!customerId)throw new Error("Paid checkout is missing customer identity");
-        const userId=await checked(admin.rpc("find_auth_user_id_by_email",{p_email:email}),"find checkout user");
+        const userId=accountOwner?.userId||await checked(admin.rpc("find_auth_user_id_by_email",{p_email:email}),"find checkout user");
         if(userId){
-          await checked(admin.from("billing_subscriptions").upsert({user_id:userId,stripe_customer_id:customerId,stripe_subscription_id:subscriptionId,plan,status:activeStatus,livemode:true,updated_at:new Date().toISOString()},{onConflict:"user_id"}),"save subscription");
+          const row={user_id:userId,stripe_customer_id:customerId,stripe_subscription_id:subscriptionId,plan,status:activeStatus,livemode:true,updated_at:new Date().toISOString()};
+          if(accountOwner)await saveAccountSubscription(admin,accountOwner,row);
+          else await checked(admin.from("billing_subscriptions").upsert(row,{onConflict:"user_id"}),"save subscription");
           await checked(admin.from("billing_pending_entitlements").delete().eq("stripe_subscription_id",subscriptionId),"remove claimed entitlement");
         }else{
           await checked(admin.from("billing_pending_entitlements").upsert({email,stripe_customer_id:customerId,stripe_subscription_id:subscriptionId,plan,status:activeStatus,livemode:true,updated_at:new Date().toISOString()},{onConflict:"stripe_subscription_id"}),"save pending entitlement");

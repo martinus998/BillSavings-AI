@@ -20,9 +20,11 @@ async function openAccount({hash = '', search = '?access=ready', user = null, se
     }
     return elements.get(id);
   }
+  const initialAuthReturn = {received: !!hash, failed: hash.includes('error='), expired: hash.includes('otp_expired'), type: null};
   const supabase = {
     auth: {
       onAuthStateChange() {},
+      async getUser() { return {data: {user}, error: sessionError}; },
       async getSession() {
         // The SDK may clear the fragment before getSession resolves.
         location.hash = '';
@@ -34,7 +36,8 @@ async function openAccount({hash = '', search = '?access=ready', user = null, se
   await vm.runInNewContext(`(async () => {${source}\n})()`, {
     URLSearchParams, location, document: {getElementById: element},
     history: {replaceState: (_state, _title, path) => replaced.push(path)},
-    createClient: () => supabase,
+    supabase, initialAuthReturn, SUPABASE_URL:'https://example.invalid', SUPABASE_PUBLISHABLE_KEY:'public',
+    hasAccountReturn: () => false, createPasswordAuth: () => ({busy:false, handleAuthEvent(){}}),
     createCheckoutAccess: () => ({
       reset() {resets++;}, start: async () => {flowStarts++;}, hasCheckout: () => false
     }),
@@ -42,7 +45,7 @@ async function openAccount({hash = '', search = '?access=ready', user = null, se
     setTimeout, clearTimeout
   });
   await Promise.resolve();
-  return {element, requests, claims, replaced, resets, flowStarts};
+  return {element, requests, claims, replaced, resets, flowStarts, location};
 }
 
 test('expired callback shows a safe retry message without claiming access or starting checkout', async () => {
@@ -78,9 +81,9 @@ test('verified callback uses the existing entitlement check and never opens chec
   assert.equal(x.flowStarts, 1);
 });
 
-test('normal plan entry retains the existing purchase-first checkout', async () => {
+test('normal plan entry opens the combined account and payment page', async () => {
   const x = await openAccount({search: '?plan=premium'});
-  assert.equal(x.requests.length, 1);
-  assert.equal(JSON.parse(x.requests[0][1].body).plan, 'premium');
+  assert.equal(x.requests.length, 0);
+  assert.equal(x.location.href, '/checkout.html?plan=premium');
   assert.equal(x.claims.length, 0);
 });

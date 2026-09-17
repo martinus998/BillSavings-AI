@@ -98,7 +98,7 @@ export function createCheckoutAccess({supabase, endpoint, publicKey, claimPaidAc
   }
   $('accessRetryBtn').addEventListener('click', () => run(true));
   $('accessManualBtn').addEventListener('click', () => {
-    manual = true; $('loginBox').classList.remove('hidden'); $('email').focus();
+    manual = true; $('loginBox').classList.remove('hidden'); ($('authEmail') || $('email'))?.focus();
   });
   return {
     hasCheckout: () => !!sessionId || returned,

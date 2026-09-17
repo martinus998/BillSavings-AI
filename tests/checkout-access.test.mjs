@@ -109,11 +109,13 @@ test('explicit resend remains available after one failed resend', async () => {
 
 test('sign-in callback releases the Supabase auth lock before claiming billing access', async () => {
   const start = readFileSync(new URL('../start.js', import.meta.url), 'utf8');
-  const callbackCode = start.slice(start.indexOf('supabase.auth.onAuthStateChange('), start.indexOf('await refreshSession();'));
+  const callbackStart = start.indexOf('supabase.auth.onAuthStateChange(');
+  const callbackCode = start.slice(callbackStart, start.indexOf('await refreshSession();', callbackStart));
   let callback, locked = true, claimed = false;
   const deferred = [];
   vm.runInNewContext(callbackCode, {
-    pageReady: true, renderSession() {},
+    pageReady: true, currentUser: {id:'verified'}, recoveryMode:false, passwordAuth:{busy:false,handleAuthEvent(){}}, renderSession() {},
+    refreshSession: async () => {assert.equal(locked, false);},
     supabase: {auth: {onAuthStateChange: fn => {callback = fn;}}},
     setTimeout: fn => deferred.push(fn),
     accessFlow: {onSignIn: async () => {assert.equal(locked, false); claimed = true;}}
@@ -122,5 +124,6 @@ test('sign-in callback releases the Supabase auth lock before claiming billing a
   assert.equal(claimed, false);
   locked = false;
   deferred.forEach(fn => fn());
+  await Promise.resolve();
   assert.equal(claimed, true);
 });
