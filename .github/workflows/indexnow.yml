@@ -50,14 +50,21 @@ jobs:
 
           key = "8b6f5df22c4cd56dcc6b093554a2f8bb"
           host = "billsavingsai.com"
-          root = ET.parse("sitemap.xml").getroot()
           ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-          urls = [n.text.strip() for n in root.findall("sm:url/sm:loc", ns) if n.text]
+          urls = []
+          for sitemap in ("sitemap.xml", "sitemap-growth.xml"):
+              root = ET.parse(sitemap).getroot()
+              urls.extend(n.text.strip() for n in root.findall("sm:url/sm:loc", ns) if n.text)
+          urls = list(dict.fromkeys(urls))
+          if not urls or len(urls) > 10000:
+              raise ValueError("Unexpected IndexNow URL count")
+          if any(not url.startswith(f"https://{host}/") for url in urls):
+              raise ValueError("Sitemap contains a URL outside the production domain")
           payload = {
               "host": host,
               "key": key,
               "keyLocation": f"https://{host}/{key}.txt",
-              "urlList": urls[:100],
+              "urlList": urls,
           }
           with open("indexnow.json", "w", encoding="utf-8") as f:
               json.dump(payload, f)
