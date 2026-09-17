@@ -29,14 +29,35 @@ async function openCheckout(options = {}) {
   function element(id) {
     if (!elements.has(id)) {
       const handlers = new Map(), classes = new Set();
+      async function dispatch(name) {
+        const event = {
+          defaultPrevented: false,
+          immediateStopped: false,
+          preventDefault() {this.defaultPrevented = true;},
+          stopImmediatePropagation() {this.immediateStopped = true;}
+        };
+        const listeners = [...(handlers.get(name) || [])].sort((a, b) => Number(b.capture) - Number(a.capture));
+        for (const listener of listeners) {
+          await listener.callback(event);
+          if (event.immediateStopped) break;
+        }
+        return event;
+      }
       elements.set(id, {
         value: '', textContent: '', hidden: ['accountReady', 'checkoutStatus', 'authConfirmField'].includes(id),
-        disabled: false, type: id === 'authPassword' ? 'password' : 'text',
-        classList: {toggle(name, value) {value ? classes.add(name) : classes.delete(name);}, contains: name => classes.has(name)},
+        disabled: false, type: id === 'authPassword' ? 'password' : 'text', required: false,
+        classList: {toggle(name, value) {value ? classes.add(name) : classes.delete(name);}, contains: name => classes.has(name), add: name => classes.add(name), remove: name => classes.delete(name)},
         querySelector: selector => element(selector.slice(1)), closest: () => null, setAttribute() {},
-        addEventListener(name, callback) {handlers.set(name, callback);}, removeEventListener(name) {handlers.delete(name);},
-        click: () => handlers.get('click')?.({preventDefault() {}}),
-        submit: () => handlers.get('submit')?.({preventDefault() {}})
+        addEventListener(name, callback, opts) {
+          const list = handlers.get(name) || [];
+          list.push({callback, capture: opts === true || !!opts?.capture});
+          handlers.set(name, list);
+        },
+        removeEventListener(name, callback) {
+          handlers.set(name, (handlers.get(name) || []).filter(item => item.callback !== callback));
+        },
+        click: () => dispatch('click'),
+        submit: () => dispatch('submit')
       });
     }
     return elements.get(id);
@@ -68,7 +89,13 @@ async function openCheckout(options = {}) {
     initialAuthReturn: {failed: hash.has('error') || hash.has('error_code'), type: hash.get('type') === 'recovery' ? 'recovery' : null},
     supabase,
     createPasswordAuth: config => {passwordOptions = config; authController = createPasswordAuth(config); return authController;},
-    fetch: async (...args) => {requests.push(args); throw new Error('This flow must not call an embedded checkout backend');}
+    fetch: async (...args) => {
+      requests.push(args);
+      const [url] = args;
+      assert.match(String(url), /\/functions\/v1\/password-signup$/);
+      if (options.signupFetchError) throw options.signupFetchError;
+      return {ok: options.signupOk ?? true, json: async () => options.signupPayload ?? {ok: true}};
+    }
   });
   return {element, navigations, replaced, authCalls, claims, requests, storage, location,
     get passwordOptions() {return passwordOptions;}, get authController() {return authController;},
@@ -102,7 +129,7 @@ test('signed-out, unconfirmed, anonymous and malformed account identities cannot
     const x = await openCheckout({user});
     await x.continue();
     assert.equal(x.navigations.length + x.claims.length, 0);
-    assert.match(x.element('checkoutStatus').textContent, /Sign in with your confirmed email/);
+    assert.match(x.element('checkoutStatus').textContent, /Sign in to continue/);
     assert.equal(x.element('checkoutAuth').hidden, false);
   }
 });
@@ -202,15 +229,17 @@ test('password recovery cannot open payment before the password is saved', async
   assert.equal(x.navigations.length, 1);
 });
 
-test('signup confirmation without a session never proceeds to payment', async () => {
+test('new signup creates a confirmed account server-side and proceeds directly to payment', async () => {
   const x = await openCheckout();
   x.credentials();
   await x.submit();
-  assert.equal(x.authCalls.includes('signUp'), true);
-  assert.equal(x.navigations.length + x.claims.length, 0);
-  assert.match(x.element('checkoutStatus').textContent, /confirm your account/);
+  assert.equal(x.requests.length, 1);
+  assert.match(String(x.requests[0][0]), /\/functions\/v1\/password-signup$/);
+  assert.equal(x.authCalls.includes('signUp'), false);
+  assert.equal(x.authCalls.includes('signInWithPassword'), true);
+  assert.equal(x.navigations.length, 1);
+  assert.equal(new URL(x.navigations[0]).origin, 'https://buy.stripe.com');
   assert.equal(x.element('authPassword').value, '');
-  assert.equal(x.element('accountReady').hidden, true);
 });
 
 test('confirmed password login proceeds without an extra email-link request', async () => {
