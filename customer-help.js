@@ -26,6 +26,28 @@ const BILL_PORTAL_URL = 'https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1s
     });
   }
 
+  if (location.pathname.endsWith('/start.html')) {
+    // Keep the value shown on the plan page aligned with the live Premium action layer.
+    const plans = Array.from(document.querySelectorAll('#pricing .plan'));
+    const premium = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Premium');
+    const family = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
+    if (premium?.querySelector('ul')) {
+      premium.querySelector('ul').innerHTML = '<li>Complete supported findings</li><li>Detailed recommendations</li><li>Fix-it call and email scripts</li><li>Next-bill follow-up tracking</li><li>Confirm resolved, still there, or amount changed</li><li>Priority support</li>';
+    }
+    if (family?.querySelector('ul')) {
+      family.querySelector('ul').innerHTML = '<li>Everything in Premium</li><li>Expanded household workflow</li><li>More supported uploads</li><li>Fix-it scripts and next-bill follow-up</li><li>Premium support</li>';
+    }
+
+    // Load the same non-PII funnel measurement used on the homepage.
+    if (!document.querySelector('script[data-billsavings-analytics]')) {
+      const analytics = document.createElement('script');
+      analytics.src = '/analytics.js?v=20260917-funnel1';
+      analytics.dataset.billsavingsAnalytics = '1';
+      analytics.defer = true;
+      document.head.appendChild(analytics);
+    }
+  }
+
   // Keep the action layer isolated from auth, billing and analysis code.
   // Load persistent follow-up tracking only after the Fix it parser is ready.
   if (location.pathname.endsWith('/start.html') && !document.querySelector('script[data-fix-it]')) {
