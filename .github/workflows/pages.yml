@@ -32,9 +32,9 @@ jobs:
           set -euo pipefail
           mkdir -p _site
 
-          # Deploy every public root HTML/JS/CSS asset so newly added pages such as
-          # start.html are never omitted from production again.
-          for f in *.html *.css *.js *.svg robots.txt sitemap.xml; do
+          # Deploy every public root HTML/JS/CSS/TXT asset so newly added pages and
+          # verification files such as IndexNow keys are never omitted.
+          for f in *.html *.css *.js *.svg *.txt robots.txt sitemap.xml; do
             if [ -f "$f" ]; then cp "$f" _site/; fi
           done
 
