@@ -194,7 +194,7 @@ test('a sign-in arriving during payment checking resumes once with the new accou
 
 test('sign-in callback releases the Supabase auth lock before payment or account checks', async () => {
   const start = readFileSync(new URL('../start.js', import.meta.url), 'utf8');
-  const callbackCode = start.slice(start.indexOf('supabase.auth.onAuthStateChange('), start.indexOf('await refreshSession();\npageReady'));
+  const callbackCode = start.slice(start.indexOf('supabase.auth.onAuthStateChange('), start.indexOf('await refreshSession();pageReady=true;'));
   let callback, locked = true, claimed = false;
   const deferred = [];
   vm.runInNewContext(callbackCode, {
