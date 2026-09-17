@@ -1,10 +1,10 @@
 # Remaining customer support activation
 
-The reliability fixes are independent of these activation steps. Do not claim that support or cancellation is ready until both values below are confirmed.
+The reliability fixes are independent of these activation steps. The public support address has been supplied by the owner. Stripe customer-portal activation remains pending.
 
 ## Public support inbox
 
-Obtain the owner's chosen public, monitored support email. Do not publish the owner's private login or Git commit email by assumption. Set `BILL_SUPPORT_EMAIL` in `customer-help.js` and `REPAIR_SUPPORT_EMAIL` in the RepairCostMatch repository. Check both contact pages and the BillSavings account page after deploying.
+The owner explicitly chose `Martinus998@azet.sk` for both websites on September 17, 2026. It is configured in both customer-help scripts and included as a static mailto link on the relevant pages, so visitors can find it even without JavaScript. The owner needs to monitor this inbox and enable notifications; no message was sent and email delivery was not tested during this change.
 
 ## Stripe-hosted customer portal
 
