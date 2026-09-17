@@ -25,4 +25,14 @@ const BILL_PORTAL_URL = 'https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1s
       container.hidden = false;
     });
   }
+
+  // Keep the new action layer isolated from auth, billing and analysis code.
+  // It is loaded only on the bill-analysis page and observes rendered findings.
+  if (location.pathname.endsWith('/start.html') && !document.querySelector('script[data-fix-it]')) {
+    const script = document.createElement('script');
+    script.src = '/fix-it.js?v=20260917-fix1';
+    script.dataset.fixIt = '1';
+    script.defer = true;
+    document.head.appendChild(script);
+  }
 })();
