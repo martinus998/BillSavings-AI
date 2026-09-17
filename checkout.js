@@ -43,7 +43,7 @@ $('authForm').addEventListener('submit', async (event) => {
   const email = $('authEmail').value.trim();
   const password = $('authPassword').value;
   if (!/^\S+@\S+\.\S+$/.test(email)) { status('Enter a valid email address.', true); return; }
-  if (password.length < 10) { status('Use a password with at least 10 characters.', true); return; }
+  if (password.length < 12) { status('Use a password with at least 12 characters.', true); return; }
 
   busy = true;
   auth.setBusy(true);
@@ -59,7 +59,7 @@ $('authForm').addEventListener('submit', async (event) => {
     if (!response.ok) {
       const messages = {
         invalid_email: 'Enter a valid email address.',
-        invalid_password: 'Choose a stronger password with at least 10 characters.',
+        invalid_password: 'Choose a different strong password with at least 12 characters.',
         too_many_attempts: 'Too many attempts. Wait a little and try again.'
       };
       throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
