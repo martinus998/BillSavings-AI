@@ -34,7 +34,7 @@ jobs:
 
           # Deploy every public root HTML/JS/CSS/TXT asset so newly added pages and
           # verification files such as IndexNow keys are never omitted.
-          for f in *.html *.css *.js *.svg *.txt robots.txt sitemap.xml; do
+          for f in *.html *.css *.js *.svg *.txt *.xml robots.txt; do
             if [ -f "$f" ]; then cp "$f" _site/; fi
           done
 
