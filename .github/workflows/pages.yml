@@ -46,6 +46,23 @@ jobs:
           fi
           sed -i 's#src="analytics.js"#src="analytics.js?v=20260916-1505"#' _site/index.html
 
+          # Only the legacy GitHub Pages address redirects; production .com is unchanged.
+          python3 - <<'PY'
+          from pathlib import Path
+          redirect = """<script>
+          if (window.location.hostname === "martinus998.github.io" &&
+              window.location.pathname.startsWith("/BillSavings-AI/")) {
+            window.location.replace("https://billsavingsai.com/" +
+              window.location.pathname.slice("/BillSavings-AI/".length) +
+              window.location.search + window.location.hash);
+          }
+          </script>"""
+          for page in Path("_site").glob("*.html"):
+              html = page.read_text(encoding="utf-8")
+              if "<head>" in html:
+                  page.write_text(html.replace("<head>", "<head>" + redirect, 1), encoding="utf-8")
+          PY
+
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
         with:
