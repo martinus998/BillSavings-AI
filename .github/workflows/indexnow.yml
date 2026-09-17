@@ -1,0 +1,79 @@
+name: Notify IndexNow
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "*.html"
+      - "*.xml"
+      - "robots.txt"
+      - "8b6f5df22c4cd56dcc6b093554a2f8bb.txt"
+      - ".github/workflows/indexnow.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Wait for public key file
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY="8b6f5df22c4cd56dcc6b093554a2f8bb"
+          URL="https://billsavingsai.com/${KEY}.txt"
+          for i in $(seq 1 18); do
+            BODY="$(curl -fsSL --max-time 15 "$URL" || true)"
+            if [ "$BODY" = "$KEY" ]; then
+              echo "IndexNow key is live."
+              exit 0
+            fi
+            echo "Waiting for deployment ($i/18)…"
+            sleep 10
+          done
+          echo "IndexNow key file is not live at $URL"
+          exit 1
+
+      - name: Build IndexNow payload
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import xml.etree.ElementTree as ET
+
+          key = "8b6f5df22c4cd56dcc6b093554a2f8bb"
+          host = "billsavingsai.com"
+          root = ET.parse("sitemap.xml").getroot()
+          ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+          urls = [n.text.strip() for n in root.findall("sm:url/sm:loc", ns) if n.text]
+          payload = {
+              "host": host,
+              "key": key,
+              "keyLocation": f"https://{host}/{key}.txt",
+              "urlList": urls[:100],
+          }
+          with open("indexnow.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f)
+          print(f"Prepared {len(payload['urlList'])} URLs for IndexNow")
+          PY
+
+      - name: Submit sitemap URLs to IndexNow
+        shell: bash
+        run: |
+          set -euo pipefail
+          CODE="$(curl -sS -o indexnow-response.txt -w '%{http_code}' \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data-binary @indexnow.json \
+            https://api.indexnow.org/indexnow)"
+          echo "IndexNow HTTP status: $CODE"
+          cat indexnow-response.txt || true
+          if [ "$CODE" != "200" ] && [ "$CODE" != "202" ]; then
+            exit 1
+          fi
