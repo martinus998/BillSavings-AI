@@ -178,6 +178,14 @@ if (!result || !categoryEl) {
     void markContacted(event.detail || {});
   });
 
+  document.addEventListener('click', event => {
+    const button = event.target?.closest?.('.fixit-btn');
+    if (!button || !/^Mark provider contacted/i.test(button.textContent || '')) return;
+    const card = button.closest('.fixit-card');
+    const title = card?.querySelector('.fixit-copy b')?.textContent?.trim();
+    if (title) void markContacted({ title });
+  }, true);
+
   const observer = new MutationObserver(() => { void syncFindings(); });
   observer.observe(result, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden'] });
   categoryEl.addEventListener('change', () => { if (!result.hidden) void syncFindings(); });
