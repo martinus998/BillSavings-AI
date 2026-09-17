@@ -26,7 +26,7 @@
 
   window.addEventListener('load', function () {
     setTimeout(function () {
-      if (document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}"]`)) return;
+      if (document.querySelector?.(`script[src*="googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}"]`)) return;
       const tag = document.createElement('script');
       tag.async = true;
       tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(MEASUREMENT_ID);
@@ -49,7 +49,7 @@
 
 // Keep launch pricing visible and static on every device.
 (function () {
-  const plans = Array.from(document.querySelectorAll('#pricing .plan'));
+  const plans = Array.from(document.querySelectorAll?.('#pricing .plan') || []);
   const premium = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Premium');
   const family = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
   if (premium?.querySelector('.price')) premium.querySelector('.price').innerHTML = '$8.99 <span>/ month</span>';
@@ -77,8 +77,8 @@
   const path = window.location?.pathname || '';
   if (path === '/' || path.endsWith('/index.html')) {
     once('bs_home_view_v1', () => send('bs_home_view'));
-    const pricing = document.getElementById('pricing');
-    if (pricing && 'IntersectionObserver' in window) {
+    const pricing = typeof document.getElementById === 'function' ? document.getElementById('pricing') : null;
+    if (pricing && typeof IntersectionObserver === 'function') {
       const io = new IntersectionObserver(entries => {
         if (!entries.some(entry => entry.isIntersecting)) return;
         once('bs_pricing_view_v1', () => send('bs_pricing_view'));
@@ -97,6 +97,7 @@
     });
   }
 
+  if (typeof document.addEventListener !== 'function') return;
   document.addEventListener('click', event => {
     const target = event.target?.closest?.('button,a');
     if (!target) return;
