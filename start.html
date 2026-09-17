@@ -32,7 +32,7 @@
         <div class="field"><label for="category">Bill type</label><select id="category"><option value="general">General bill</option><option value="subscription">Subscription</option><option value="utility">Utility</option><option value="bank_fee">Bank fee</option><option value="insurance">Insurance</option></select></div>
         <div class="field"><label for="file">PDF or image · max 10 MB</label><input id="file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"></div>
         <button class="btn" id="uploadBtn">Upload securely</button>
-        <button class="btn secondary" id="signOutBtn">Sign out</button><p class="small" data-customer-portal hidden></p><p class="small" data-customer-support>Customer support: <a href="mailto:Martinus998@azet.sk">Martinus998@azet.sk</a></p>
+        <button class="btn secondary" id="signOutBtn">Sign out</button><p class="small" data-customer-portal><a href="https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1sQ00">Manage or cancel your subscription</a></p><p class="small" data-customer-support>Customer support: <a href="mailto:Martinus998@azet.sk">Martinus998@azet.sk</a></p>
         <div class="divider"></div>
         <label class="small"><input type="checkbox" id="consent"> I agree that this non-medical document may be sent securely for AI analysis.</label>
         <button class="btn secondary" id="analyzeBtn" disabled>Analyze uploaded bill</button>
@@ -99,5 +99,5 @@
   </section>
 </main>
 <script type="module" src="/start.js"></script>
-<script src="customer-help.js?v=20260917-support" defer></script></body>
+<script src="customer-help.js?v=20260917-portal" defer></script></body>
 </html>
