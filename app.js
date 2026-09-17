@@ -112,6 +112,8 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
   const freeBtn = Array.from(document.querySelectorAll('#pricing .plan .btn')).find(el => /get started free/i.test(el.textContent || ''));
   bind(freeBtn, '/start.html');
 
+  bind(document.querySelector('.launchRow .paidBtn'), '/start.html');
+
   document.querySelectorAll('#pricing .paidBtn').forEach(btn => {
     const plan = btn.dataset.plan === 'family' ? 'family' : 'premium';
     btn.addEventListener('click', function (e) {

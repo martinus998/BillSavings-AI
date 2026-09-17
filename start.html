@@ -32,7 +32,7 @@
         <div class="field"><label for="category">Bill type</label><select id="category"><option value="general">General bill</option><option value="subscription">Subscription</option><option value="utility">Utility</option><option value="bank_fee">Bank fee</option><option value="insurance">Insurance</option></select></div>
         <div class="field"><label for="file">PDF or image · max 10 MB</label><input id="file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"></div>
         <button class="btn" id="uploadBtn">Upload securely</button>
-        <button class="btn secondary" id="signOutBtn">Sign out</button>
+        <button class="btn secondary" id="signOutBtn">Sign out</button><p class="small" data-customer-portal hidden></p><p class="small" data-customer-support hidden></p>
         <div class="divider"></div>
         <label class="small"><input type="checkbox" id="consent"> I agree that this non-medical document may be sent securely for AI analysis.</label>
         <button class="btn secondary" id="analyzeBtn" disabled>Analyze uploaded bill</button>
@@ -99,5 +99,5 @@
   </section>
 </main>
 <script type="module" src="/start.js"></script>
-</body>
+<script src="customer-help.js?v=20260917" defer></script></body>
 </html>
