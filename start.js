@@ -1,6 +1,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { createCheckoutAccess } from './checkout-access.js';
 
+// Capture only callback state before the SDK consumes and clears the fragment.
+const authReturnState = (() => {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const failed = params.has('error') || params.has('error_code');
+  return {
+    failed,
+    expired: params.get('error_code') === 'otp_expired',
+    received: failed || params.has('access_token') || params.has('refresh_token') ||
+      new URLSearchParams(location.search).get('access') === 'ready'
+  };
+})();
+
 const SUPABASE_URL = 'https://bkyuyqicybqqifenhhux.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_o-RgVfTUjzfne4DC9QcGfQ_4QGg5CVr';
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -15,6 +27,7 @@ const $ = id => document.getElementById(id);
 let currentUser = null;
 let lastDocumentId = null;
 let checkoutStarting = false;
+let sessionLoadFailed = false;
 
 function showStatus(text, isError = false) {
   const el = $('status');
@@ -61,10 +74,13 @@ function renderSession(user) {
 }
 
 async function refreshSession() {
+  sessionLoadFailed = false;
   try {
-    const { data } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
     renderSession(data?.session?.user || null);
   } catch (error) {
+    sessionLoadFailed = true;
     renderSession(null);
     showStatus('Could not load the secure account session. Please refresh and try again.', true);
   }
@@ -247,13 +263,27 @@ await refreshSession();
 pageReady = true;
 
 const qs = new URLSearchParams(location.search);
-await accessFlow.start();
-if (currentUser && !accessFlow.hasCheckout()) await claimPaidAccess();
-if (accessFlow.hasCheckout() || qs.get('access') === 'ready') {
-  // A return flag alone never confirms payment or unlocks paid functionality.
+if (authReturnState.failed || sessionLoadFailed) {
+  accessFlow.reset();
+  if (authReturnState.failed) {
+    // The SDK has finished. Remove error details without showing untrusted text.
+    history.replaceState(null, '', `${location.pathname}${location.search}`);
+  }
+  const message = authReturnState.expired
+    ? 'This sign-in link has expired or has already been used. Request a new secure link below.'
+    : authReturnState.received
+      ? 'We could not complete sign-in. Request a new secure link below.'
+      : 'Could not load the secure account session. Please refresh and try again.';
+  showStatus(message, true);
 } else {
-  const requestedPlan = qs.get('plan');
-  if (requestedPlan === 'premium' || requestedPlan === 'family') {
-    checkout(requestedPlan);
+  await accessFlow.start();
+  if (currentUser && !accessFlow.hasCheckout()) await claimPaidAccess();
+  if (accessFlow.hasCheckout() || qs.get('access') === 'ready' || authReturnState.received) {
+    // A return flag alone never confirms payment or unlocks paid functionality.
+  } else {
+    const requestedPlan = qs.get('plan');
+    if (requestedPlan === 'premium' || requestedPlan === 'family') {
+      checkout(requestedPlan);
+    }
   }
 }

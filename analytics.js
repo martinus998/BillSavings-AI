@@ -1,6 +1,10 @@
 // BillSavings AI lightweight analytics only.
 // Interactive account/upload/billing modules are intentionally not loaded on the homepage.
 (function () {
+  if (window.BILLSAVINGS_AUTH_RETURN === true) {
+    window.BILLSAVINGS_ANALYTICS = { active: false, authReturn: true };
+    return;
+  }
   const MEASUREMENT_ID = 'G-DKCVZZVG2W';
   const params = new URLSearchParams(window.location.search);
   try {
