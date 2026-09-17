@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://esm.sh; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://bkyuyqicybqqifenhhux.supabase.co; base-uri 'self'; form-action 'self'">
-<script src="/account-origin.js?v=20260917-simple"></script>
+<script src="/account-origin.js?v=20260917-signup-v2"></script>
 <title>Your account and payment | BillSavings AI</title><link rel="icon" href="/logo.svg" type="image/svg+xml">
 <style>
 [hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;padding:20px;background:#03101f;color:#f4f8ff;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}a{color:#a9d0ff}.shell{max-width:580px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:8px 0 24px}.brand{display:flex;align-items:center;gap:9px;color:white;font-weight:800;text-decoration:none}.brand img{width:36px;height:36px}.back{font-size:14px}.card{padding:26px;border:1px solid #21476e;border-radius:22px;background:linear-gradient(150deg,#0c2544,#071a31)}h1{font-size:30px;line-height:1.2;margin:0 0 8px}h2{font-size:23px;margin:0 0 8px}.muted{color:#a8bfd8;margin:8px 0 20px}.summary{display:flex;justify-content:space-between;gap:12px;padding:16px;margin:18px 0 24px;border:1px solid #29557e;border-radius:14px;background:#07182d}.summary strong{display:block;font-size:20px}.summary small{font-size:14px;color:#a8bfd8}.field{display:grid;gap:7px;margin:15px 0}.field label{font-size:14px;font-weight:700}.field input{width:100%;padding:14px;border:1px solid #315f8b;border-radius:11px;background:#041326;color:#fff;font:inherit}.btn{width:100%;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#2f85ff,#536dff);color:white;font:inherit;font-weight:800;cursor:pointer;margin-top:12px}.btn.secondary{background:#0b203b;border:1px solid #28507b}.btn:disabled{opacity:.55;cursor:wait}.text-btn{display:block;padding:8px 0;margin:4px auto;background:none;border:0;color:#acd0ff;text-decoration:underline;cursor:pointer;font:inherit;font-size:14px}.password-toggle{margin:0 0 0 auto}.status{padding:14px;margin:20px 0 0;border:1px solid #27577d;background:#0b2942;border-radius:12px;color:#d8edff}.status.err{background:#36151b;border-color:#71303d;color:#ffd6db}.small{font-size:14px;color:#9ab6d1}.email{overflow-wrap:anywhere}.footer{display:flex;justify-content:center;gap:20px;margin:24px 0;font-size:14px}@media(max-width:440px){body{padding:14px}.card{padding:20px}.brand{font-size:15px}.back{font-size:13px}h1{font-size:27px}}
@@ -14,7 +16,7 @@
 <section class="card"><h1>Start your plan</h1><p class="muted">Create your account and continue directly to secure payment.</p>
 <div class="summary"><div><strong id="selectedPlan">Your plan</strong><small>Cancel anytime</small></div><div><strong id="selectedPrice">—</strong><small>per month</small></div></div>
 <div id="checkoutAuth"><form id="authForm">
-<h2 id="authTitle">Create your account</h2><p class="muted" id="authCopy">Enter your email and choose a password for future visits.</p>
+<h2 id="authTitle">Create your account</h2><p class="muted" id="authCopy">Enter your email and choose a password. No email confirmation is required before payment.</p>
 <div class="field"><label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required></div>
 <div class="field"><label for="authPassword">Password</label><input id="authPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required></div>
 <button class="text-btn password-toggle" id="showPassword" type="button" aria-pressed="false">Show password</button>
@@ -27,4 +29,4 @@
 <div class="status" id="checkoutStatus" role="status" aria-live="polite" hidden></div>
 <p class="small">Your password is used only for your BillSavings AI account. Payment details are handled securely by Stripe.</p>
 </section><footer class="footer"><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/contact.html">Help</a></footer>
-</main><script type="module" src="/checkout.js?v=20260917-instant-signup"></script></body></html>
+</main><script type="module" src="/checkout.js?v=20260917-signup-v2"></script></body></html>
