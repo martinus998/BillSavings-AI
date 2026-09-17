@@ -36,7 +36,7 @@ export function createCheckoutAccess({supabase, endpoint, publicKey, claimPaidAc
     retry.disabled = busy || delay > 0;
     clearTimeout(timer); timer = null;
     if (delay > 0) timer = setTimeout(() => { timer = null; retry.disabled = false; }, delay * 1000);
-    // Keep manual sign-in available, without repeating its form by default.
+    // Direct email sign-in is disabled on this owner-only test page.
     if (!manual) $('loginBox').classList.add('hidden');
   }
   async function request(action, resend = false) {
@@ -80,13 +80,13 @@ export function createCheckoutAccess({supabase, endpoint, publicKey, claimPaidAc
       } else if (result.state === 'pending') {
         panel('Waiting for payment confirmation', 'We are still waiting for confirmation from Stripe. Please check again shortly. If you already paid, do not make another payment.', 'Check payment again', 5);
       } else if (result.state === 'expired' || result.state === 'limit_reached') {
-        panel('Sign in to access your purchase', 'Use the email from checkout in the sign-in form below. Your purchase is still linked to that email. For help, contact support.');
-        manual = true; $('loginBox').classList.remove('hidden');
+        panel('Sign in to access your purchase', 'This test access link is unavailable. Ask the test operator to check the sandbox.');
+        $('loginBox').classList.add('hidden');
       } else {
-        panel('Your access link needs another try', 'We could not confirm that a new email was sent. Check your inbox, then try again in a minute or use email sign-in below.', 'Try sending again', result.retry_after || 60);
+        panel('Your access link needs another try', 'We could not confirm that a new email was sent. Check your inbox, then try again in a minute or ask the test operator for help.', 'Try sending again', result.retry_after || 60);
       }
     } catch {
-      if (version === generation) panel('Connection interrupted', 'Please try again. You can also sign in with your checkout email below. If you paid, you do not need to pay again.', 'Try again', 5);
+      if (version === generation) panel('Connection interrupted', 'Please try again. The test operator can check this session if the problem continues. If you paid, you do not need to pay again.', 'Try again', 5);
     } finally {
       busy = false;
       // panel() owns cooldowns; immediate retries are only enabled without one.
@@ -98,9 +98,7 @@ export function createCheckoutAccess({supabase, endpoint, publicKey, claimPaidAc
     }
   }
   $('accessRetryBtn').addEventListener('click', () => run(true));
-  $('accessManualBtn').addEventListener('click', () => {
-    manual = true; $('loginBox').classList.remove('hidden'); $('email').focus();
-  });
+  $('accessManualBtn').hidden = true;
   return {
     hasCheckout: () => !!sessionId || returned,
     reset,
@@ -111,8 +109,8 @@ export function createCheckoutAccess({supabase, endpoint, publicKey, claimPaidAc
       $('start').insertBefore(card, $('pricing'));
       card.scrollIntoView({behavior: 'smooth', block: 'start'});
       if (!valid(sessionId)) {
-        panel('Access your purchase', 'Sign in below with the email used at checkout. If you paid, you do not need to pay again.');
-        manual = true; $('loginBox').classList.remove('hidden');
+        panel('Access your purchase', 'Start a new sandbox checkout with the approved test email. No real payment is needed.');
+        $('loginBox').classList.add('hidden');
         return;
       }
       await run();

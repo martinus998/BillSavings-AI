@@ -2,13 +2,24 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 
+const SANDBOX_OWNER_EMAIL_HASH = "89d68cd1ee5b015c6698ca143c8a698ac56b018d4690b56a61eff0041878d83d";
+const SANDBOX_TEST_EXPIRES_AT = Date.parse("2026-09-19T18:00:00Z");
+const SANDBOX_REDIRECT = "https://billsavingsai.com/sandbox-checkout.html?access=ready";
+async function sandboxEmailAllowed(email: unknown) {
+  if (Date.now() >= SANDBOX_TEST_EXPIRES_AT || typeof email !== "string") return false;
+  const normalized = email.trim().toLowerCase();
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(normalized));
+  const hash = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, "0")).join("");
+  return hash === SANDBOX_OWNER_EMAIL_HASH;
+}
+
 const ORIGINS = new Set(["https://billsavingsai.com", "https://www.billsavingsai.com"]);
-const REDIRECT = "https://billsavingsai.com/start.html?access=ready";
+const REDIRECT = SANDBOX_REDIRECT;
 const MAX_ATTEMPTS = 5;
 const COOLDOWN_MS = 60_000;
 
 // Custom authentication: an unguessable Checkout Session ID must match a
-// service-only receipt written by the signed, live Stripe webhook. This proof
+// service-only receipt written by the signed sandbox Stripe webhook. This proof
 // can send a link ONLY to the verified checkout email; it cannot sign in a user.
 // Supabase Auth verifies mailbox ownership and normal entitlement checks apply.
 Deno.serve(async (req: Request) => {
@@ -48,6 +59,7 @@ Deno.serve(async (req: Request) => {
     if (error) throw new Error("receipt read failed");
     // Missing receipts can also mean that the paid webhook is still on its way.
     if (!receipt) return json({state: "pending"}, 202);
+    if (!await sandboxEmailAllowed(receipt.email)) return json({state: "unavailable"}, 403);
     if (Date.parse(receipt.expires_at) <= Date.now()) return json({state: "expired"}, 410);
     const [local, domain] = receipt.email.split("@");
     const emailHint = `${local.slice(0, 1)}***@${domain.slice(0, 1)}***`;

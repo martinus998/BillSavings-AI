@@ -26,15 +26,6 @@ supabase.auth.onAuthStateChange(event=>{
   if(event==='SIGNED_IN')setTimeout(()=>void flow.onSignIn(),0);
 });
 $('checkPlanBtn').addEventListener('click',()=>void claimPaidAccess());
-$('signInBtn').addEventListener('click',async()=>{
-  const email=$('email').value.trim();
-  if(!/^\S+@\S+\.\S+$/.test(email)){$('testResult').textContent='Enter the email used at checkout.';return;}
-  $('signInBtn').disabled=true;
-  try{
-    const {error}=await supabase.auth.signInWithOtp({email,options:{emailRedirectTo:'https://billsavingsai.com/start.html?access=ready'}});
-    $('testResult').textContent=error?'The email could not be sent. Please try again shortly.':'Check your email for the secure sign-in link.';
-  }finally{$('signInBtn').disabled=false;}
-});
 $('startTestBtn').addEventListener('click',async()=>{
   $('startTestBtn').disabled=true;
   try{

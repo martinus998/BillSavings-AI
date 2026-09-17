@@ -24,7 +24,7 @@
   <div id="start">
     <section class="card" id="pricing">
       <h2>Premium — $8.99 / month</h2>
-      <p>Use your own email and Stripe's test card. The button starts the test signed out in this browser, so we can check email delivery.</p>
+      <p>Use the owner's approved test email and Stripe's test card. The button starts the test signed out in this browser, so we can check email delivery. This test is available until September 19, 2026 at 18:00 UTC.</p>
       <button id="startTestBtn" disabled>Preparing test…</button>
       <p><small>Test card: 4242 4242 4242 4242 · any future expiry · CVC 123. This does not activate a live subscription.</small></p>
     </section>
@@ -32,15 +32,12 @@
       <div id="checkoutAccess" hidden>
         <h2 id="accessTitle"></h2><p id="accessMessage" role="status" aria-live="polite"></p>
         <button id="accessRetryBtn" class="secondary" hidden></button>
-        <button id="accessManualBtn" class="secondary">Use email sign-in</button>
+        <button id="accessManualBtn" class="secondary" hidden>Use email sign-in</button>
       </div>
-      <div id="loginBox" class="hidden">
-        <h2>Email sign-in</h2><label for="email">Email used at checkout</label>
-        <input id="email" type="email" autocomplete="email"><button id="signInBtn">Send secure access link</button>
-      </div>
+      <div id="loginBox" class="hidden" hidden></div>
       <p id="testResult" role="status" aria-live="polite">Complete the test checkout to begin.</p>
       <button id="checkPlanBtn" class="secondary">Check sandbox plan</button>
-      <p><small>The email opens the usual BillSavings sign-in page. Then return to this test tab to see your sandbox result.</small></p>
+      <p><small>The email returns to this sandbox page and checks your sandbox plan. It does not activate a live subscription.</small></p>
     </section>
   </div>
   <p><a href="/start.html">Return to BillSavings AI</a></p>

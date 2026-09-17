@@ -2,6 +2,17 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 
+const SANDBOX_OWNER_EMAIL_HASH = "89d68cd1ee5b015c6698ca143c8a698ac56b018d4690b56a61eff0041878d83d";
+const SANDBOX_TEST_EXPIRES_AT = Date.parse("2026-09-19T18:00:00Z");
+const SANDBOX_REDIRECT = "https://billsavingsai.com/sandbox-checkout.html?access=ready";
+async function sandboxEmailAllowed(email: unknown) {
+  if (Date.now() >= SANDBOX_TEST_EXPIRES_AT || typeof email !== "string") return false;
+  const normalized = email.trim().toLowerCase();
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(normalized));
+  const hash = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, "0")).join("");
+  return hash === SANDBOX_OWNER_EMAIL_HASH;
+}
+
 const PREMIUM_PAYMENT_LINK = "SANDBOX_METADATA_PLAN_REQUIRED";
 const FAMILY_PAYMENT_LINK = "SANDBOX_FAMILY_METADATA_PLAN_REQUIRED";
 
@@ -64,6 +75,7 @@ Deno.serve(async(req:Request)=>{
     if(already)return json({ok:true,duplicate:true});
     if(type==="checkout.session.completed"||type==="checkout.session.async_payment_succeeded"){
       const email=String(obj?.customer_details?.email||obj?.customer_email||"").trim().toLowerCase();
+      if(!await sandboxEmailAllowed(email))return json({error:"Sandbox test unavailable"},403);
       const subscriptionId=idOf(obj?.subscription); const customerId=idOf(obj?.customer); const plan=planFromObject(obj);
       const activeStatus=(obj?.payment_status==="paid"||obj?.payment_status==="no_payment_required")?"active":"incomplete";
       if(plan==="premium"||plan==="family"){
