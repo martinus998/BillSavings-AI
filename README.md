@@ -2,13 +2,15 @@
 
 **BillSavings AI** is a U.S.-focused AI bill analyzer and hidden-fee finder designed to help consumers review supported bills, subscriptions and statements for recurring charges, possible fees and potential savings opportunities.
 
-Live website: https://bill-savings-ai.vercel.app/
+Live website: https://billsavingsai.com/
 
 Key guides:
-- AI Bill Analyzer: https://bill-savings-ai.vercel.app/ai-bill-analyzer.html
-- Find Hidden Fees: https://bill-savings-ai.vercel.app/find-hidden-fees.html
-- Lower Monthly Bills: https://bill-savings-ai.vercel.app/lower-monthly-bills.html
-- Subscription Savings: https://bill-savings-ai.vercel.app/subscription-savings.html
-- About BillSavings AI: https://bill-savings-ai.vercel.app/about.html
+- AI Bill Analyzer: https://billsavingsai.com/ai-bill-analyzer.html
+- Bill Help & Savings Guides: https://billsavingsai.com/bill-guides.html
+- Find Hidden Fees: https://billsavingsai.com/find-hidden-fees.html
+- Lower Monthly Bills: https://billsavingsai.com/lower-monthly-bills.html
+- Reduce Internet Bill: https://billsavingsai.com/reduce-internet-bill.html
+- Lower Cell Phone Bill: https://billsavingsai.com/lower-cell-phone-bill.html
+- About BillSavings AI: https://billsavingsai.com/about.html
 
 BillSavings AI provides informational review and estimates; actual savings depend on provider terms, eligibility and user action.
