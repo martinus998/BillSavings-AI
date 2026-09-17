@@ -26,13 +26,21 @@ const BILL_PORTAL_URL = 'https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1s
     });
   }
 
-  // Keep the new action layer isolated from auth, billing and analysis code.
-  // It is loaded only on the bill-analysis page and observes rendered findings.
+  // Keep the action layer isolated from auth, billing and analysis code.
+  // Load persistent follow-up tracking only after the Fix it parser is ready.
   if (location.pathname.endsWith('/start.html') && !document.querySelector('script[data-fix-it]')) {
     const script = document.createElement('script');
     script.src = '/fix-it.js?v=20260917-fix1';
     script.dataset.fixIt = '1';
     script.defer = true;
+    script.addEventListener('load', () => {
+      if (document.querySelector('script[data-follow-up]')) return;
+      const followUp = document.createElement('script');
+      followUp.type = 'module';
+      followUp.src = '/follow-up.js?v=20260917-follow1';
+      followUp.dataset.followUp = '1';
+      document.head.appendChild(followUp);
+    }, { once: true });
     document.head.appendChild(script);
   }
 })();
