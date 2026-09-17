@@ -26,6 +26,7 @@
 
   window.addEventListener('load', function () {
     setTimeout(function () {
+      if (document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}"]`)) return;
       const tag = document.createElement('script');
       tag.async = true;
       tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(MEASUREMENT_ID);
@@ -53,4 +54,65 @@
   const family = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
   if (premium?.querySelector('.price')) premium.querySelector('.price').innerHTML = '$8.99 <span>/ month</span>';
   if (family?.querySelector('.price')) family.querySelector('.price').innerHTML = '$13.99 <span>/ month</span>';
+})();
+
+// Conversion funnel events. No email, document content, provider name or other user-entered data is sent.
+(function () {
+  if (!window.BILLSAVINGS_ANALYTICS?.active || typeof window.gtag !== 'function') return;
+
+  const send = (name, params = {}) => {
+    const safe = { ...params, page_path: location.pathname };
+    try { window.gtag('event', name, safe); } catch {}
+  };
+
+  const once = (key, fn) => {
+    try {
+      if (sessionStorage.getItem(key) === '1') return;
+      sessionStorage.setItem(key, '1');
+    } catch {}
+    fn();
+  };
+
+  if (location.pathname === '/' || location.pathname.endsWith('/index.html')) {
+    once('bs_home_view_v1', () => send('bs_home_view'));
+    const pricing = document.getElementById('pricing');
+    if (pricing && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        once('bs_pricing_view_v1', () => send('bs_pricing_view'));
+        io.disconnect();
+      }, { threshold: 0.25 });
+      io.observe(pricing);
+    }
+  }
+
+  if (location.pathname.endsWith('/start.html')) {
+    once('bs_start_view_v1', () => send('bs_start_view', {
+      entry_mode: new URLSearchParams(location.search).has('signin') ? 'signin' : (new URLSearchParams(location.search).has('free') ? 'free' : 'plans')
+    }));
+  }
+
+  document.addEventListener('click', event => {
+    const target = event.target?.closest?.('button,a');
+    if (!target) return;
+    const text = (target.textContent || '').trim();
+
+    let plan = '';
+    if (target.dataset?.plan === 'family' || target.id === 'familyBtn') plan = 'family';
+    else if (target.dataset?.plan === 'premium' || target.id === 'premiumBtn') plan = 'premium';
+    else if (target.id === 'freeBtn' || /get started free|use free preview/i.test(text)) plan = 'free';
+    if (plan) send('bs_plan_select', { plan });
+
+    if (target.id === 'uploadBtn') send('bs_upload_start');
+    if (target.id === 'analyzeBtn') send('bs_analysis_start');
+
+    if (target.classList?.contains('fixit-btn')) {
+      if (/mark provider contacted/i.test(text)) send('bs_fixit_provider_contact');
+      else if (/copy call script/i.test(text)) send('bs_fixit_call_script');
+      else if (/copy email/i.test(text)) send('bs_fixit_email');
+      else if (/still there/i.test(text)) send('bs_followup_outcome', { outcome: 'still_there' });
+      else if (/resolved/i.test(text)) send('bs_followup_outcome', { outcome: 'resolved' });
+      else if (/amount changed/i.test(text)) send('bs_followup_outcome', { outcome: 'amount_changed' });
+    }
+  }, true);
 })();
