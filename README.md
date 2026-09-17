@@ -4,7 +4,8 @@
 
 Live website: https://billsavingsai.com/
 
-Key guides:
+Key tools and guides:
+- AI Bill Checker: https://billsavingsai.com/ai-bill-checker.html
 - AI Bill Analyzer: https://billsavingsai.com/ai-bill-analyzer.html
 - Bill Help & Savings Guides: https://billsavingsai.com/bill-guides.html
 - Find Hidden Fees: https://billsavingsai.com/find-hidden-fees.html
