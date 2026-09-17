@@ -41,10 +41,19 @@ const BILL_PORTAL_URL = 'https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1s
     // Load the same non-PII funnel measurement used on the homepage.
     if (!document.querySelector('script[data-billsavings-analytics]')) {
       const analytics = document.createElement('script');
-      analytics.src = '/analytics.js?v=20260917-funnel1';
+      analytics.src = '/analytics.js?v=20260917-funnel2';
       analytics.dataset.billsavingsAnalytics = '1';
       analytics.defer = true;
       document.head.appendChild(analytics);
+    }
+
+    // Paid onboarding is visual guidance only; it does not change entitlement or billing state.
+    if (!document.querySelector('script[data-paid-onboarding]')) {
+      const onboarding = document.createElement('script');
+      onboarding.src = '/paid-onboarding.js?v=20260917-onboard1';
+      onboarding.dataset.paidOnboarding = '1';
+      onboarding.defer = true;
+      document.head.appendChild(onboarding);
     }
   }
 
