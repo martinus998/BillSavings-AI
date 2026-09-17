@@ -6,6 +6,7 @@ const LINKS = {
   premium: 'https://buy.stripe.com/fZu6oG9lE65B2Pa9oi1sQ01',
   family: 'https://buy.stripe.com/eVqbJ055o65B3Te8ke1sQ02'
 };
+const SIGNUP_ENDPOINT = 'https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/password-signup';
 const query = new URLSearchParams(location.search);
 const requestedPlan = query.get('plan');
 const plan = Object.hasOwn(LINKS, requestedPlan) ? requestedPlan : null;
@@ -18,7 +19,6 @@ function status(message, error = false) {
   $('checkoutStatus').classList.toggle('err', error);
 }
 function rememberPlan() {
-  // Navigation preference only. Never evidence of identity or paid entitlement.
   if (!plan) return;
   try { localStorage.setItem('billsavings.purchase-plan', JSON.stringify({plan, expires: Date.now() + 3600000})); } catch {}
 }
@@ -27,12 +27,66 @@ function forgetPlan() {
 }
 const auth = createPasswordAuth({supabase, root: $('checkoutAuth'), initialMode: 'signup',
   requirePasswordConfirmation: false,
-  // Reuse the already-configured email return; no provider change is required.
   redirectTo: 'https://billsavingsai.com/start.html?access=ready',
   onStatus: (message, kind) => { rememberPlan(); status(message, kind === 'error'); },
   onAuthenticated: async () => { callbackFailed = false; recovering = false; await refreshAccount(); await continueToPayment(); },
   onRecovery: () => { recovering = true; $('checkoutAuth').hidden = false; $('accountReady').hidden = true; }
 });
+
+// Checkout signup is intentionally immediate: create the confirmed account on the
+// trusted backend, sign in with the password in this tab, then continue to Stripe.
+$('authForm').addEventListener('submit', async (event) => {
+  if (auth.mode !== 'signup') return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (busy || auth.busy) return;
+
+  const email = $('authEmail').value.trim();
+  const password = $('authPassword').value;
+  if (!/^\S+@\S+\.\S+$/.test(email)) { status('Enter a valid email address.', true); return; }
+  if (password.length < 10) { status('Use a password with at least 10 characters.', true); return; }
+
+  busy = true;
+  auth.setBusy(true);
+  status('Creating your account…');
+  try {
+    const response = await fetch(SIGNUP_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    let payload = {};
+    try { payload = await response.json(); } catch {}
+    if (!response.ok) {
+      const messages = {
+        invalid_email: 'Enter a valid email address.',
+        invalid_password: 'Choose a stronger password with at least 10 characters.',
+        too_many_attempts: 'Too many attempts. Wait a little and try again.'
+      };
+      throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
+    }
+
+    const {data, error} = await supabase.auth.signInWithPassword({email, password});
+    if (error || !data?.session?.user?.id) {
+      // Existing account: do not reveal whether it exists; offer normal sign-in.
+      auth.setMode('signin');
+      $('authEmail').value = email;
+      status('This email may already have an account. Sign in with your password or use Reset password.', true);
+      return;
+    }
+    status('Account created. Opening secure payment…');
+    callbackFailed = false;
+    recovering = false;
+    await refreshAccount();
+    await continueToPayment();
+  } catch (error) {
+    status(error?.message || 'Could not create the account. Please try again.', true);
+  } finally {
+    $('authPassword').value = '';
+    busy = false;
+    auth.setBusy(false);
+  }
+}, true);
 
 async function refreshAccount() {
   const version = ++generation;
@@ -53,13 +107,12 @@ async function continueToPayment() {
   $('changeAccount').disabled = true;
   status('Opening secure payment…');
   try {
-    // Read the verified current identity again at the moment payment is opened.
     const {data, error} = await supabase.auth.getUser();
     if (version !== generation) return;
     const user = data?.user;
     if (error || !user?.id || !user.email_confirmed_at || user.is_anonymous || !user.email) {
       $('checkoutAuth').hidden = false; $('accountReady').hidden = true;
-      status('Sign in with your confirmed email to continue.', true);
+      status('Sign in to continue.', true);
       return;
     }
     const entitlement = await supabase.rpc('claim_billing_entitlement');
@@ -73,8 +126,6 @@ async function continueToPayment() {
       return;
     }
     const link = new URL(LINKS[plan]);
-    // Convenience only: the signed webhook + verified account/email match still
-    // determine ownership. Never use a browser-supplied user ID as proof.
     link.searchParams.set('locked_prefilled_email', user.email.trim().toLowerCase());
     rememberPlan();
     location.assign(link.href);
