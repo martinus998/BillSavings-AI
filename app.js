@@ -118,3 +118,51 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     });
   });
 })();
+
+// Explain the paid value after a finding without changing auth, analysis or billing.
+(function () {
+  function mountPremiumValue() {
+    const pricing = document.getElementById('pricing');
+    if (!pricing || document.getElementById('premium-action-value')) return;
+
+    const plans = Array.from(pricing.querySelectorAll('.plan'));
+    const premium = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Premium');
+    const family = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
+    if (premium?.querySelector('ul')) {
+      premium.querySelector('ul').innerHTML = '<li>Everything in Free</li><li>Unlock all supported savings findings</li><li>Detailed bill-review results</li><li>Fix-it call and email scripts for flagged items</li><li>Track contacted items on the next bill</li><li>Confirm resolved, still there, or amount changed</li><li>Priority support</li>';
+    }
+    if (family?.querySelector('ul')) {
+      family.querySelector('ul').innerHTML = '<li>Everything in Premium</li><li>Expanded household bill review</li><li>Shared household savings workflow</li><li>More supported uploads</li><li>Fix-it scripts and next-bill follow-up</li><li>Premium support</li>';
+    }
+
+    if (!document.getElementById('premium-action-value-style')) {
+      const style = document.createElement('style');
+      style.id = 'premium-action-value-style';
+      style.textContent = `
+        .premium-action-value{margin:18px 20px 0;padding:20px;border:1px solid rgba(91,190,255,.25);border-radius:20px;background:linear-gradient(145deg,rgba(7,35,69,.96),rgba(4,20,41,.97));box-shadow:0 14px 36px rgba(0,7,22,.23)}
+        .premium-action-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.premium-action-head h2{margin:5px 0 7px;font-size:24px}.premium-action-head p{margin:0;color:#a7bdd5;max-width:760px;line-height:1.55}.premium-action-badge{padding:7px 10px;border:1px solid rgba(83,223,184,.28);border-radius:999px;background:rgba(25,101,82,.18);color:#7af0cf;font-size:9px;font-weight:900;white-space:nowrap}
+        .premium-action-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:15px}.premium-action-card{padding:13px;border:1px solid rgba(120,188,255,.15);border-radius:14px;background:rgba(5,24,48,.78)}.premium-action-card span{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:#0d3560;color:#82c9ff;font-size:11px;font-weight:950}.premium-action-card b{display:block;margin-top:9px;font-size:13px}.premium-action-card small{display:block;margin-top:4px;color:#9bb4cd;font-size:10px;line-height:1.45}.premium-action-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding-top:13px;border-top:1px solid rgba(90,150,210,.16)}.premium-action-footer p{margin:0;color:#9db8d0;font-size:10px;line-height:1.45}.premium-action-footer .btn{white-space:nowrap}
+        @media(max-width:760px){.premium-action-value{margin:10px;padding:14px}.premium-action-head{display:block}.premium-action-badge{display:inline-block;margin-top:9px}.premium-action-head h2{font-size:18px}.premium-action-head p{font-size:11px}.premium-action-grid{grid-template-columns:1fr 1fr}.premium-action-footer{display:block}.premium-action-footer .btn{margin-top:10px;width:100%}}
+        @media(max-width:460px){.premium-action-grid{grid-template-columns:1fr}}
+      `;
+      document.head.appendChild(style);
+    }
+
+    const section = document.createElement('section');
+    section.id = 'premium-action-value';
+    section.className = 'premium-action-value';
+    section.innerHTML = `
+      <div class="premium-action-head"><div><div class="kicker">PREMIUM ACTION LAYER</div><h2>Finding the charge is only step one.</h2><p>Premium is built to help you move from a flagged line item to a real provider conversation, then check what happened on the next bill.</p></div><span class="premium-action-badge">FIND → FIX → TRACK</span></div>
+      <div class="premium-action-grid">
+        <article class="premium-action-card"><span>1</span><b>Find it</b><small>See the complete supported findings, recurring charges and fees worth reviewing.</small></article>
+        <article class="premium-action-card"><span>2</span><b>Fix it</b><small>Open a ready-to-use provider call script, email draft and questions for the flagged item.</small></article>
+        <article class="premium-action-card"><span>3</span><b>Track it</b><small>Mark the provider contacted and let BillSavings compare the item with your next bill review.</small></article>
+        <article class="premium-action-card"><span>4</span><b>Confirm it</b><small>Tell BillSavings whether it was resolved, is still there, or the amount changed.</small></article>
+      </div>
+      <div class="premium-action-footer"><p>If one removable monthly charge of $9 is actually removed, that charge alone is roughly the same as the $8.99 Premium monthly price. This is an illustration, not a savings guarantee.</p><a class="btn primary" href="/start.html">Start with BillSavings AI →</a></div>`;
+    pricing.insertAdjacentElement('afterend', section);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountPremiumValue, { once: true });
+  else mountPremiumValue();
+})();
