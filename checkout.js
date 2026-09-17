@@ -33,8 +33,6 @@ const auth = createPasswordAuth({supabase, root: $('checkoutAuth'), initialMode:
   onRecovery: () => { recovering = true; $('checkoutAuth').hidden = false; $('accountReady').hidden = true; }
 });
 
-// Checkout signup is intentionally immediate: create the confirmed account on the
-// trusted backend, sign in with the password in this tab, then continue to Stripe.
 $('authForm').addEventListener('submit', async (event) => {
   if (auth.mode !== 'signup') return;
   event.preventDefault();
@@ -68,7 +66,8 @@ $('authForm').addEventListener('submit', async (event) => {
 
     const {data, error} = await supabase.auth.signInWithPassword({email, password});
     if (error || !data?.session?.user?.id) {
-      // Existing account: do not reveal whether it exists; offer normal sign-in.
+      busy = false;
+      auth.setBusy(false);
       auth.setMode('signin');
       $('authEmail').value = email;
       status('This email may already have an account. Sign in with your password or use Reset password.', true);
@@ -78,6 +77,8 @@ $('authForm').addEventListener('submit', async (event) => {
     callbackFailed = false;
     recovering = false;
     await refreshAccount();
+    busy = false;
+    auth.setBusy(false);
     await continueToPayment();
   } catch (error) {
     status(error?.message || 'Could not create the account. Please try again.', true);
