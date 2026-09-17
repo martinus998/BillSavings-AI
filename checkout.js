@@ -1,3 +1,4 @@
+import './live-tracker.js?v=20260917-live1';
 import {supabase, initialAuthReturn} from './account-session.js';
 import {createPasswordAuth} from './password-auth.js?v=20260917-auth-errors';
 
@@ -36,7 +37,7 @@ const auth = createPasswordAuth({supabase, root: $('checkoutAuth'), initialMode:
 $('authForm').addEventListener('submit', async (event) => {
   if (auth.mode !== 'signup') return;
   event.preventDefault();
-  event.stopImmediatePropagation();
+  if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
   if (busy || auth.busy) return;
 
   const email = $('authEmail').value.trim();
