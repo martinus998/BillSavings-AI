@@ -34,6 +34,16 @@
   }, { once: true });
 })();
 
+// Private near-real-time owner dashboard tracking.
+(function () {
+  if (location.pathname === '/live-dashboard.html') return;
+  try { if (localStorage.getItem('billsavings_owner_device') === '1') return; } catch {}
+  const s = document.createElement('script');
+  s.src = '/live-tracker.js?v=20260917-live1';
+  s.defer = true;
+  document.head.appendChild(s);
+})();
+
 // Keep launch pricing visible and static on every device.
 (function () {
   const plans = Array.from(document.querySelectorAll('#pricing .plan'));
