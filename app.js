@@ -114,7 +114,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     const plan = btn.dataset.plan === 'family' ? 'family' : 'premium';
     btn.addEventListener('click', function (e) {
       e.preventDefault();
-      go('/checkout-v2.html?plan=' + plan);
+      go('/checkout.html?plan=' + plan);
     });
   });
 })();
