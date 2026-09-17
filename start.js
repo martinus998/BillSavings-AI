@@ -1,9 +1,12 @@
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, initialAuthReturn } from './account-session.js';
 import { createCheckoutAccess } from './checkout-access.js?v=20260917-password';
-import { createPasswordAuth } from './password-auth.js';
+import { createPasswordAuth } from './password-auth.js?v=20260917-auth-errors';
 
 const authReturnState = initialAuthReturn;
+const qs = new URLSearchParams(location.search);
 let recoveryMode = initialAuthReturn.type === 'recovery';
+let accountViewRequested = qs.get('signin') === '1' || qs.get('free') === '1' ||
+  qs.get('access') === 'ready' || qs.has('checkout') || authReturnState.received;
 const $ = id => document.getElementById(id);
 let currentUser = null;
 let lastDocumentId = null;
@@ -45,11 +48,14 @@ function clearStatus() {
 
 function configureAccountLayout() {
   const card = $('accountCard');
-  if (card && $('start').firstElementChild !== card) $('start').insertBefore(card, $('pricing'));
-  const title = $('pricing')?.querySelector('h2');
-  const copy = $('pricing')?.querySelector('h2 + p');
-  if (title) title.textContent = 'Choose your plan';
-  if (copy) copy.textContent = 'Choose a plan, set up your account, then pay securely with Stripe. Return with your email and password.';
+  const showAccount = !!currentUser || accountViewRequested || recoveryMode;
+  card.hidden = !showAccount;
+  $('pricing').hidden = activePaidPlan || recoveryMode || (!currentUser && showAccount);
+  $('entrySignIn').hidden = !!currentUser || showAccount;
+  $('startTitle').textContent = showAccount ? 'Your BillSavings AI account' : 'Choose your plan';
+  $('startCopy').textContent = showAccount
+    ? 'Use your email and password to access your account and upload your bills.'
+    : 'Choose a plan, create your account, then pay securely. Your selected plan stays with your account.';
 }
 
 function clearAccountView() {
@@ -82,6 +88,7 @@ function renderSession(user) {
   $('signedBox').classList.toggle('show', !!user && !recoveryMode);
   if (recoveryMode) $('loginBox').classList.remove('hidden');
   if (user) $('userEmail').textContent = user.email || 'your account';
+  configureAccountLayout();
   refreshPurchaseButton();
 }
 
@@ -102,6 +109,7 @@ async function refreshSession() {
   } catch (error) {
     if (version !== accountGeneration) return;
     sessionLoadFailed = true;
+    accountViewRequested = true;
     renderSession(null);
     showStatus('Could not load the secure account session. Please refresh and try again.', true);
   }
@@ -114,6 +122,7 @@ async function signOut() {
     if (result?.error) throw result.error;
     accessFlow.reset();
     recoveryMode = false;
+    accountViewRequested = false;
     clearAccountView();
     renderSession(null);
     configureAccountLayout();
@@ -228,6 +237,7 @@ async function claimPaidAccess() {
       refreshPurchaseButton();
       $('activePlan').textContent = `${name} · Active`;
       $('pricing').hidden = true;
+      configureAccountLayout();
       showStatus(`${name} is active. Upload your bill to get started.`);
       return true;
     }
@@ -236,6 +246,7 @@ async function claimPaidAccess() {
     activePaidPlan = false;
     $('activePlan').textContent = 'Free Preview';
     $('pricing').hidden = recoveryMode;
+    configureAccountLayout();
     refreshPurchaseButton();
   }
   return false;
@@ -255,6 +266,7 @@ const accessFlow = createCheckoutAccess({
 });
 const passwordAuth = createPasswordAuth({supabase, root: $('loginBox'),
   requirePasswordConfirmation: false,
+  initialMode: qs.get('free') === '1' ? 'signup' : 'signin',
   redirectTo: `${location.origin}/start.html?access=ready`,
   onStatus: (message, kind) => message ? showStatus(message, kind === 'error') : clearStatus(),
   onRecovery: () => { recoveryMode = true; renderSession(currentUser); $('pricing').hidden = true; },
@@ -276,9 +288,12 @@ $('analyzeBtn').addEventListener('click', analyzeBill);
 $('freeBtn').addEventListener('click', () => {
   if (currentUser) showStatus('Free Preview is ready. Upload a supported bill below.');
   else {
-    showStatus('Sign in or create your account to use Free Preview.');
-    $('loginBox')?.closest('.card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    accountViewRequested = true;
+    passwordAuth.setMode('signup');
+    configureAccountLayout();
+    clearStatus();
   }
+  $('accountCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 $('premiumBtn').addEventListener('click', () => checkout('premium'));
 $('familyBtn').addEventListener('click', () => checkout('family'));
@@ -296,6 +311,7 @@ supabase.auth.onAuthStateChange((_event, session) => {
   // Cross-tab SDK events do not establish this tab's identity.
   if (_event === 'SIGNED_OUT') {
     recoveryMode = false;
+    accountViewRequested = false;
     accessFlow.reset();
     clearAccountView();
     renderSession(null);
@@ -309,9 +325,10 @@ supabase.auth.onAuthStateChange((_event, session) => {
 await refreshSession();
 pageReady = true;
 
-const qs = new URLSearchParams(location.search);
 if (authReturnState.failed || sessionLoadFailed) {
   accessFlow.reset();
+  accountViewRequested = true;
+  configureAccountLayout();
   if (authReturnState.failed) history.replaceState(null, '', `${location.pathname}${location.search}`);
   const message = authReturnState.expired
     ? 'This email link has expired or has already been used. Sign in with your password or request a new reset link.'

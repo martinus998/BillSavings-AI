@@ -97,20 +97,20 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
   }
 
   const navSignIn = Array.from(document.querySelectorAll('.nav-actions .btn')).find(el => /sign in/i.test(el.textContent || ''));
-  bind(navSignIn, '/start.html');
+  bind(navSignIn, '/start.html?signin=1');
 
   const navStart = document.querySelector('.nav-actions .paidBtn');
   if (navStart) navStart.textContent = 'Get Started →';
   bind(navStart, '/start.html');
 
   const heroUpload = Array.from(document.querySelectorAll('.cta .btn')).find(el => /upload a bill/i.test(el.textContent || ''));
-  bind(heroUpload, '/start.html');
+  bind(heroUpload, '/start.html?free=1');
 
   const bannerStart = Array.from(document.querySelectorAll('.banner .btn')).find(el => /get started today/i.test(el.textContent || ''));
   bind(bannerStart, '/start.html');
 
   const freeBtn = Array.from(document.querySelectorAll('#pricing .plan .btn')).find(el => /get started free/i.test(el.textContent || ''));
-  bind(freeBtn, '/start.html');
+  bind(freeBtn, '/start.html?free=1');
 
   bind(document.querySelector('.launchRow .paidBtn'), '/start.html');
 
@@ -118,7 +118,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     const plan = btn.dataset.plan === 'family' ? 'family' : 'premium';
     btn.addEventListener('click', function (e) {
       e.preventDefault();
-      go('/start.html?plan=' + plan);
+      go('/checkout.html?plan=' + plan);
     });
   });
 })();

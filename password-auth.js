@@ -1,4 +1,30 @@
 // Account credentials are sent only to Supabase Auth, never to Stripe or a URL.
+function authErrorMessage(error, fallback) {
+  // Only documented codes select customer-facing text. Provider messages can
+  // contain addresses or internal details and must never be displayed.
+  switch (error?.code) {
+    case 'over_email_send_rate_limit':
+      return 'Too many account emails have been requested. Please wait before trying again.';
+    case 'over_request_rate_limit':
+      return 'Too many attempts. Wait a few minutes and try again.';
+    case 'email_address_not_authorized':
+      return 'Account confirmation emails are currently unavailable. Please contact support.';
+    case 'signup_disabled':
+      return 'New account registration is currently unavailable. Please contact support.';
+    case 'email_provider_disabled':
+      return 'Email and password accounts are currently unavailable. Please contact support.';
+    case 'weak_password':
+      return 'Choose a stronger, unique password with at least 10 characters.';
+    case 'email_address_invalid':
+      return 'Enter a valid email address that can receive email.';
+  }
+  if (error?.name === 'AuthWeakPasswordError') {
+    return 'Choose a stronger, unique password with at least 10 characters.';
+  }
+  if (error?.status === 429) return 'Too many attempts. Wait a few minutes and try again.';
+  return fallback;
+}
+
 export function createPasswordAuth({
   supabase,
   root,
@@ -159,7 +185,8 @@ export function createPasswordAuth({
           throw new Error('Unverified account');
         }
         const { data: updated, error } = await supabase.auth.updateUser({ password });
-        if (error || updated?.user?.id !== recoveryUserId) throw new Error('Password update failed');
+        if (error) throw error;
+        if (updated?.user?.id !== recoveryUserId) throw new Error('Password update failed');
         if (destroyed || requestGeneration !== generation) return;
         const { data, error: sessionError } = await supabase.auth.getSession();
         if (sessionError || data?.session?.user?.id !== recoveryUserId) throw new Error('Session unavailable');
@@ -172,7 +199,7 @@ export function createPasswordAuth({
         ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } })
         : await supabase.auth.signInWithPassword({ email, password });
       if (destroyed || requestGeneration !== generation) return;
-      if (result.error) throw new Error('Authentication failed');
+      if (result.error) throw result.error;
       if (result.data?.session?.user?.id) {
         status('Signed in.');
         await onAuthenticated(result.data.session);
@@ -182,7 +209,7 @@ export function createPasswordAuth({
       } else {
         throw new Error('Session unavailable');
       }
-    } catch {
+    } catch (error) {
       if (destroyed || requestGeneration !== generation) return;
       const messages = {
         signin: 'Could not sign in. Check your email and password, confirm your email if needed, or use Reset password.',
@@ -190,7 +217,10 @@ export function createPasswordAuth({
         reset: resetNotice,
         recovery: 'Could not save your password. Request a new reset link and try again.'
       };
-      status(messages[submittedMode], submittedMode === 'reset' ? 'info' : 'error');
+      const message = submittedMode === 'reset'
+        ? resetNotice
+        : authErrorMessage(error, messages[submittedMode]);
+      status(message, submittedMode === 'reset' ? 'info' : 'error');
     } finally {
       clearPasswords();
       if (!destroyed && requestGeneration === generation) setBusy(false);

@@ -1,5 +1,5 @@
 import {supabase, initialAuthReturn} from './account-session.js';
-import {createPasswordAuth} from './password-auth.js';
+import {createPasswordAuth} from './password-auth.js?v=20260917-auth-errors';
 
 const $ = id => document.getElementById(id);
 const LINKS = {

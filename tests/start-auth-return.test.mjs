@@ -9,7 +9,7 @@ async function openAccount({hash = '', search = '?access=ready', user = null, se
   entitlement = {plan: 'free', status: 'inactive'}, hasCheckout = false, purchasePreference = null, storageBlocked = false} = {}) {
   const elements = new Map(), requests = [], claims = [], replaced = [], inserts = [];
   const preferences = new Map(purchasePreference === null ? [] : [['billsavings.purchase-plan', purchasePreference]]);
-  let resets = 0, flowStarts = 0, flowSignIns = 0, recoveryStarts = 0;
+  let resets = 0, flowStarts = 0, flowSignIns = 0, recoveryStarts = 0, passwordMode;
   let activeUser = user, passwordOptions, authEvent, internals, flowOptions;
   let pendingCheckout = hasCheckout, rpcResult = () => ({data: entitlement, error: null});
   let analysisResult = () => ({data: {ok: true, result: {summary: 'Sample result'}}, error: null});
@@ -56,7 +56,9 @@ async function openAccount({hash = '', search = '?access=ready', user = null, se
     supabase, initialAuthReturn, SUPABASE_URL: 'https://example.invalid', SUPABASE_PUBLISHABLE_KEY: 'public',
     createPasswordAuth: options => {
       passwordOptions = options;
-      return {busy: false, handleAuthEvent() {}, showRecovery: async () => {recoveryStarts++; await options.onRecovery();}};
+      passwordMode = options.initialMode;
+      return {busy: false, handleAuthEvent() {}, setMode(mode) {passwordMode = mode;},
+        showRecovery: async () => {recoveryStarts++; await options.onRecovery();}};
     },
     createCheckoutAccess: options => {
       flowOptions = options;
@@ -69,6 +71,7 @@ async function openAccount({hash = '', search = '?access=ready', user = null, se
   return {element, requests, claims, replaced, location, inserts, internals, flowOptions, preferences,
     get resets() {return resets;}, get flowStarts() {return flowStarts;}, get flowSignIns() {return flowSignIns;},
     get recoveryStarts() {return recoveryStarts;}, get passwordOptions() {return passwordOptions;},
+    get passwordMode() {return passwordMode;},
     setRPC: callback => {rpcResult = callback;}, setAnalysis: callback => {analysisResult = callback;},
     signIn: async newUser => {activeUser = newUser; await passwordOptions.onAuthenticated();},
     signOut: () => element('signOutBtn').click(),
@@ -122,6 +125,43 @@ test('normal plan entry opens the account step before hosted Stripe payment', as
   assert.equal(x.location.href, '/checkout.html?plan=premium');
   assert.equal(x.claims.length, 0);
   assert.equal(x.passwordOptions.requirePasswordConfirmation, false);
+});
+
+test('new customers see plans before the account form and keep their chosen plan at checkout', async () => {
+  const x = await openAccount({search: ''});
+  assert.equal(x.element('accountCard').hidden, true);
+  assert.equal(x.element('pricing').hidden, false);
+  assert.equal(x.element('entrySignIn').hidden, false);
+  assert.equal(x.element('startTitle').textContent, 'Choose your plan');
+  assert.equal(x.claims.length, 0);
+  x.element('familyBtn').click();
+  assert.equal(x.location.href, '/checkout.html?plan=family');
+});
+
+test('returning-customer sign-in and free preview open the requested account form', async () => {
+  for (const [search, mode] of [['?signin=1', 'signin'], ['?free=1', 'signup']]) {
+    const x = await openAccount({search});
+    assert.equal(x.element('accountCard').hidden, false);
+    assert.equal(x.element('pricing').hidden, true);
+    assert.equal(x.passwordMode, mode);
+    assert.equal(x.location.href, undefined);
+  }
+  const x = await openAccount({search: ''});
+  x.element('freeBtn').click();
+  assert.equal(x.element('accountCard').hidden, false);
+  assert.equal(x.element('pricing').hidden, true);
+  assert.equal(x.passwordMode, 'signup');
+});
+
+test('signed-in accounts and payment returns stay account-first without auto-opening checkout', async () => {
+  const x = await openAccount({search: '', user: confirmed(), entitlement: {plan: 'premium', status: 'active'}});
+  assert.equal(x.element('accountCard').hidden, false);
+  assert.equal(x.element('pricing').hidden, true);
+  assert.equal(x.location.href, undefined);
+  const returned = await openAccount({search: '?checkout=success&session_id=synthetic', hasCheckout: true});
+  assert.equal(returned.element('accountCard').hidden, false);
+  assert.equal(returned.element('pricing').hidden, true);
+  assert.equal(returned.location.href, undefined);
 });
 
 test('an already active account stays open instead of starting another purchase', async () => {
@@ -236,4 +276,30 @@ test('an active paid plan clears the remembered purchase and hides its button', 
   assert.equal(x.preferences.has('billsavings.purchase-plan'), false);
   x.element('continuePurchaseBtn').click();
   assert.equal(x.location.href, undefined);
+});
+
+test('homepage entry buttons distinguish plans, returning sign-in and free preview', () => {
+  const homepage = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const button = (textContent, plan) => {
+    const handlers = new Map();
+    return {textContent, tagName: 'BUTTON', dataset: {plan},
+      addEventListener(event, handler) {handlers.set(event, handler);},
+      click() {handlers.get('click')?.({preventDefault() {}});}};
+  };
+  const signIn = button('Sign In'), getStarted = button('Get Started'), upload = button('Upload a Bill');
+  const free = button('Get Started Free'), premium = button('Choose Premium', 'premium'), family = button('Choose Family', 'family');
+  const location = {};
+  const lists = {'.nav-actions .btn': [signIn, getStarted], '.cta .btn': [upload],
+    '.banner .btn': [], '#pricing .plan .btn': [free], '#pricing .paidBtn': [premium, family]};
+  vm.runInNewContext(homepage, {window: {location}, document: {
+    readyState: 'loading', addEventListener() {}, getElementById: () => null,
+    querySelector: selector => selector === '.nav-actions .paidBtn' ? getStarted : null,
+    querySelectorAll: selector => lists[selector] || []
+  }});
+  for (const [control, path] of [[getStarted, '/start.html'], [signIn, '/start.html?signin=1'],
+    [upload, '/start.html?free=1'], [free, '/start.html?free=1'],
+    [premium, '/checkout.html?plan=premium'], [family, '/checkout.html?plan=family']]) {
+    control.click();
+    assert.equal(location.href, path);
+  }
 });
