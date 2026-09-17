@@ -80,7 +80,7 @@ export function createPasswordAuth({
     el.authModeBtn.hidden = mode === 'recovery';
     const copy = {
       signin: ['Sign in', 'Use your email and password to access your account.', 'Sign in', 'Create an account'],
-      signup: ['Create your account', 'Choose a password for future visits. Confirm your email once to secure your account.', 'Create account', 'Already have an account? Sign in'],
+      signup: ['Create your account', 'Choose a strong password for future visits.', 'Create account', 'Already have an account? Sign in'],
       reset: ['Reset your password', 'Use this if you forgot your password or previously signed in using an email link.', 'Send reset link', 'Back to sign in'],
       recovery: ['Set your password', 'Choose a new password for this verified account.', 'Save password', 'Back to sign in']
     }[mode];
