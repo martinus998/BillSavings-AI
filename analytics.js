@@ -109,6 +109,9 @@
     else if (target.id === 'freeBtn' || /get started free|use free preview/i.test(text)) plan = 'free';
     if (plan) send('bs_plan_select', { plan });
 
+    const ctaName = target.dataset?.bsCta;
+    if (['free_preview','sample_result','mobile_free_preview'].includes(ctaName)) send('bs_cta_click', { cta: ctaName });
+
     if (target.id === 'uploadBtn') send('bs_upload_start');
     if (target.id === 'analyzeBtn') send('bs_analysis_start');
 
