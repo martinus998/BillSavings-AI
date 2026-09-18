@@ -9,8 +9,7 @@
   const allowedSymbol = /[!@#$%^&*()_+\-=\[\]{};'\\:"|<>?,.\/`~]/;
   const policy = value => ({
     length: value.length >= 10,
-    lower: /\p{Ll}/u.test(value),
-    upper: /\p{Lu}/u.test(value),
+    letter: /\p{L}/u.test(value),
     number: /\p{Nd}/u.test(value)
   });
   const meetsPolicy = checks => Object.values(checks).every(Boolean);
@@ -36,11 +35,11 @@
     password.minLength = 10;
     const c = policy(password.value);
     if (!password.value) {
-      help.textContent = 'Password: 10+ characters with uppercase, lowercase and a number. Symbols are optional.';
+      help.textContent = 'Password: 10+ characters with at least one letter and one number.';
       help.style.color = '#9ab6d1';
       return;
     }
-    help.textContent = `${c.length ? '✓' : '•'} 10+ characters · ${c.lower && c.upper ? '✓' : '•'} upper & lowercase · ${c.number ? '✓' : '•'} number`;
+    help.textContent = `${c.length ? '✓' : '•'} 10+ characters · ${c.letter ? '✓' : '•'} letter · ${c.number ? '✓' : '•'} number`;
     help.style.color = meetsPolicy(c) ? '#79efc9' : '#ffd08a';
   }
 
@@ -58,7 +57,7 @@
     if (lastSubmissionMetPolicy) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    showError('Use at least 10 characters with uppercase and lowercase letters and a number.');
+    showError('Use at least 10 characters with at least one letter and one number.');
     password.focus();
     renderHelp();
   }, true);
