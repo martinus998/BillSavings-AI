@@ -18,13 +18,18 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 1
 
       - name: Block sensitive files
         shell: bash
         run: |
           set -euo pipefail
           forbidden=$(find . -type f \
-            \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.pfx' -o -name '*.jks' -o -name '*.keystore' -o -name 'credentials*.json' -o -name 'service-account*.json' -o -name 'secrets.json' -o -name '*.secret' \) \
+            \( -name '.env' -o -name '.env.*' -o -name '.npmrc' -o -name '.netrc' \
+               -o -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.pfx' \
+               -o -name '*.jks' -o -name '*.keystore' -o -name '*.sqlite' -o -name '*.sqlite3' \
+               -o -name '*.db' -o -name 'credentials*.json' -o -name 'service-account*.json' \
+               -o -name 'secrets.json' -o -name '*.secret' -o -name 'id_rsa*' -o -name 'id_ed25519*' \) \
             -not -path './.git/*' \
             -not -name '.env.example' || true)
           if [ -n "$forbidden" ]; then
@@ -33,7 +38,7 @@ jobs:
             exit 1
           fi
 
-      - name: Scan for common live credential formats
+      - name: Scan for common credential formats
         shell: bash
         run: |
           set -euo pipefail
@@ -50,9 +55,44 @@ jobs:
           scan "AWS access key" 'A(K|S)IA[0-9A-Z]{16}'
           scan "GitHub token" 'gh[pousr]_[A-Za-z0-9_]{20,}'
           scan "GitHub fine-grained token" 'github_pat_[A-Za-z0-9_]{20,}'
-          scan "Stripe live secret" 'sk_live_[A-Za-z0-9]{16,}'
-          scan "Stripe restricted live key" 'rk_live_[A-Za-z0-9]{16,}'
+          scan "Stripe secret/restricted key" '(sk|rk)_(live|test)_[A-Za-z0-9]{16,}'
+          scan "Stripe webhook secret" 'whsec_[A-Za-z0-9]{16,}'
           scan "OpenAI secret key" 'sk-proj-[A-Za-z0-9_-]{20,}'
+          scan "Supabase secret key" 'sb_secret_[A-Za-z0-9_-]{20,}'
+          scan "Google OAuth client secret" 'GOCSPX-[A-Za-z0-9_-]{20,}'
+          scan "Google API key" 'AIza[A-Za-z0-9_-]{30,}'
           scan "Slack token" 'xox[baprs]-[A-Za-z0-9-]{10,}'
           scan "private key" '-----BEGIN ([A-Z0-9 ]+ )?PRIVATE KEY-----'
           exit "$failed"
+
+      - name: Block obvious secret assignments
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, sys
+
+          names = (
+              'STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET|SUPABASE_SERVICE_ROLE_KEY|'
+              'SUPABASE_SECRET_KEY|OPENAI_API_KEY|GOOGLE_MAPS_API_KEY|GOOGLE_CLIENT_SECRET|'
+              'CLOUDFLARE_API_TOKEN|CLOUDFLARE_API_KEY|VERCEL_TOKEN|GITHUB_TOKEN|'
+              'RESEND_API_KEY|SENDGRID_API_KEY|SLACK_CLIENT_SECRET'
+          )
+          rx = re.compile(rf'(?i)\b(?:{names})\b\s*[:=]\s*["\']?([A-Za-z0-9_./+\-=]{{12,}})')
+          bad = []
+          skip = {'.git', 'node_modules'}
+          for p in Path('.').rglob('*'):
+              if not p.is_file() or any(part in skip for part in p.parts) or p.name == 'security-audit.yml':
+                  continue
+              try:
+                  text = p.read_text(encoding='utf-8')
+              except Exception:
+                  continue
+              if rx.search(text):
+                  bad.append(str(p))
+          if bad:
+              print('Potential hard-coded secret assignment detected:')
+              print('\n'.join(bad))
+              sys.exit(1)
+          PY
