@@ -16,6 +16,7 @@ let accountGeneration = 0;
 let activePaidPlan = false;
 let planChecked = false;
 const purchasePreferenceKey = 'billsavings.purchase-plan';
+const SIGNUP_ENDPOINT = `${SUPABASE_URL}/functions/v1/password-signup`;
 
 function rememberedPlan() {
   try {
@@ -55,6 +56,67 @@ function checkout(plan){if(!['premium','family'].includes(plan)||recoveryMode)re
 configureAccountLayout();
 const accessFlow=createCheckoutAccess({supabase,publicKey:SUPABASE_PUBLISHABLE_KEY,endpoint:`${SUPABASE_URL}/functions/v1/billing-access`,claimPaidAccess});
 const passwordAuth=createPasswordAuth({supabase,root:$('loginBox'),requirePasswordConfirmation:false,initialMode:qs.get('free')==='1'?'signup':'signin',redirectTo:`${location.origin}/start.html?access=ready`,onStatus:(message,kind)=>message?showStatus(message,kind==='error'):clearStatus(),onRecovery:()=>{recoveryMode=true;renderSession(currentUser);$('pricing').hidden=true;},onAuthenticated:async()=>{recoveryMode=false;$('pricing').hidden=false;await refreshSession();if(currentUser){if(accessFlow.hasCheckout())await accessFlow.onSignIn();else await claimPaidAccess();$('accountCard').scrollIntoView({behavior:'smooth',block:'start'});}}});
+
+$('authForm').addEventListener('submit', async (event) => {
+  if (passwordAuth.mode !== 'signup') return;
+  event.preventDefault();
+  if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+  if (passwordAuth.busy) return;
+
+  const email = $('authEmail').value.trim();
+  const password = $('authPassword').value;
+  const strong = password.length >= 12 && password.length <= 128 &&
+    /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password) &&
+    /[!@#$%^&*()_+\-=\[\]{};'\\:"|<>?,.\/\`~]/.test(password);
+
+  if (!/^\S+@\S+\.\S+$/.test(email)) return showStatus('Enter a valid email address.', true);
+  if (!strong) return showStatus('Use at least 12 characters with uppercase, lowercase, a number and a symbol.', true);
+
+  passwordAuth.setBusy(true);
+  showStatus('Creating your account…');
+  try {
+    const response = await fetch(SIGNUP_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email,password})
+    });
+    let payload = {};
+    try { payload = await response.json(); } catch {}
+
+    if (!response.ok) {
+      const messages = {
+        invalid_email: 'Enter a valid email address.',
+        invalid_password: 'Use at least 12 characters with uppercase, lowercase, a number and a symbol.',
+        too_many_attempts: 'Too many attempts. Wait a little and try again.'
+      };
+      throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
+    }
+
+    const {data,error} = await supabase.auth.signInWithPassword({email,password});
+    if (error || !data?.session?.user?.id) {
+      passwordAuth.setBusy(false);
+      passwordAuth.setMode('signin');
+      $('authEmail').value = email;
+      showStatus('This email already has an account. Sign in with your existing password, or use Reset password.', true);
+      return;
+    }
+
+    showStatus('Account ready. Loading your BillSavings account…');
+    recoveryMode=false;
+    await refreshSession();
+    if(currentUser){
+      if(accessFlow.hasCheckout()) await accessFlow.onSignIn();
+      else await claimPaidAccess();
+      $('accountCard').scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  } catch (error) {
+    showStatus(error?.message || 'Could not create the account. Please try again.', true);
+  } finally {
+    $('authPassword').value='';
+    passwordAuth.setBusy(false);
+  }
+}, true);
+
 $('signOutBtn').addEventListener('click',signOut);$('uploadBtn').addEventListener('click',uploadBill);$('analyzeBtn').addEventListener('click',analyzeBill);
 $('freeBtn').addEventListener('click',()=>{if(currentUser)showStatus('Free Preview is ready. Upload a supported bill below.');else{accountViewRequested=true;passwordAuth.setMode('signup');configureAccountLayout();clearStatus();}$('accountCard').scrollIntoView({behavior:'smooth',block:'start'});});
 $('premiumBtn').addEventListener('click',()=>checkout('premium'));$('familyBtn').addEventListener('click',()=>checkout('family'));$('continuePurchaseBtn').addEventListener('click',()=>{if(!currentUser||!planChecked||activePaidPlan||recoveryMode)return;const plan=rememberedPlan();if(plan)checkout(plan);else refreshPurchaseButton();});
