@@ -43,7 +43,7 @@ $('authForm').addEventListener('submit', async (event) => {
   const email = $('authEmail').value.trim();
   const password = $('authPassword').value;
   if (!/^\S+@\S+\.\S+$/.test(email)) { status('Enter a valid email address.', true); return; }
-  const strong = password.length >= 10 && /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password);
+  const strong = password.length >= 10 && /\p{Ll}/u.test(password) && /\p{Lu}/u.test(password) && /\p{Nd}/u.test(password);
   if (!strong) { status('Use at least 10 characters with uppercase, lowercase and a number.', true); return; }
 
   busy = true;
