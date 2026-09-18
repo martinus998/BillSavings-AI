@@ -70,7 +70,7 @@ $('authForm').addEventListener('submit', async (event) => {
     /[!@#$%^&*()_+\-=\[\]{};'\\:"|<>?,.\/\`~]/.test(password);
 
   if (!/^\S+@\S+\.\S+$/.test(email)) return showStatus('Enter a valid email address.', true);
-  if (!strong) return showStatus('Use at least 12 characters with uppercase, lowercase, a number and a symbol.', true);
+  if (!strong) return showStatus('Use at least 10 characters with uppercase, lowercase and a number.', true);
 
   passwordAuth.setBusy(true);
   showStatus('Creating your account…');
@@ -86,7 +86,7 @@ $('authForm').addEventListener('submit', async (event) => {
     if (!response.ok) {
       const messages = {
         invalid_email: 'Enter a valid email address.',
-        invalid_password: 'Use at least 12 characters with uppercase, lowercase, a number and a symbol.',
+        invalid_password: 'Use at least 10 characters with uppercase, lowercase and a number.',
         too_many_attempts: 'Too many attempts. Wait a little and try again.'
       };
       throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
