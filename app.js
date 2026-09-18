@@ -189,17 +189,15 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     const cta = hero.querySelector('.cta');
     const ctaButtons = cta ? Array.from(cta.querySelectorAll('.btn')) : [];
 
-    if (kicker) kicker.textContent = 'AI BILL REVIEW • FREE PREVIEW • NO CARD REQUIRED';
-    if (title) title.innerHTML = 'Upload Your Bill. <span class="grad">See What to Fix.</span>';
-    if (copy) copy.textContent = 'Start with a free preview of a supported bill. See possible fees and recurring charges first, then upgrade only if you want the complete findings, ready-to-use provider scripts and next-bill tracking.';
-
+    // Keep the redesigned homepage copy from index.html.
+    // Only attach the safe destinations and analytics labels here.
     if (ctaButtons[0]) {
-      ctaButtons[0].textContent = 'Check My Bill Free →';
+      ctaButtons[0].textContent = 'Analyze My Bill Free →';
       ctaButtons[0].setAttribute('href', '/start.html?free=1');
       ctaButtons[0].dataset.bsCta = 'free_preview';
     }
     if (ctaButtons[1]) {
-      ctaButtons[1].textContent = 'See Sample Result ↓';
+      ctaButtons[1].textContent = 'View Sample Analysis ↓';
       ctaButtons[1].setAttribute('href', '#sample-result');
       ctaButtons[1].dataset.bsCta = 'sample_result';
     }
@@ -219,27 +217,18 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     if (premiumBtn) premiumBtn.textContent = 'Unlock Premium — $8.99/mo';
     if (familyBtn) familyBtn.textContent = 'Choose Family — $13.99/mo';
 
-    if (!document.getElementById('mobile-conversion-cta')) {
-      const sticky = document.createElement('div');
-      sticky.id = 'mobile-conversion-cta';
-      sticky.className = 'mobile-conversion-cta';
-      sticky.innerHTML = '<div><b>Check your bill free</b><span>No card required for the Free Preview</span></div><a class="btn primary" data-bs-cta="mobile_free_preview" href="/start.html?free=1">Start →</a>';
-      document.body.appendChild(sticky);
-    }
+    // The refreshed mobile homepage keeps the primary CTA inside the hero.
+    // Do not add the old fixed bottom conversion bar because it hides content.
 
     const style = document.createElement('style');
     style.id = 'conversion-focus-style';
     style.textContent = `
       .conversion-proof{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:13px;color:#a9c4dd;font-size:10px;line-height:1.45}
       .conversion-proof span{display:inline-flex;align-items:center;gap:5px}
-      .mobile-conversion-cta{display:none}
+      .mobile-conversion-cta{display:none!important}
       @media(max-width:760px){
-        body{padding-bottom:78px}
+        body{padding-bottom:0}
         .conversion-proof{display:grid;grid-template-columns:1fr;gap:6px;font-size:9px}
-        .mobile-conversion-cta{position:fixed;z-index:9998;left:8px;right:8px;bottom:8px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 10px 10px 13px;border:1px solid rgba(91,190,255,.34);border-radius:15px;background:rgba(3,17,38,.96);box-shadow:0 14px 38px rgba(0,0,0,.38);backdrop-filter:blur(12px)}
-        .mobile-conversion-cta b{display:block;font-size:11px;color:#fff}
-        .mobile-conversion-cta span{display:block;margin-top:2px;font-size:8px;color:#9fb8d4}
-        .mobile-conversion-cta .btn{padding:10px 13px;font-size:10px;white-space:nowrap}
       }
     `;
     document.head.appendChild(style);
