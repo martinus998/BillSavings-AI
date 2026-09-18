@@ -39,12 +39,12 @@ test('funnel analytics measure actions without reading user content', () => {
 });
 
 
-test('conversion-focused homepage makes the free path obvious without touching billing core', () => {
+test('conversion-focused homepage routes real analysis through paid plans without touching billing core', () => {
   assert.match(app, /CONVERSION FOCUS LAYER/);
-  assert.match(app, /Analyze My Bill Free/);
-  assert.match(app, /Free Preview — no card required/);
+  assert.match(app, /Choose Your Plan/);
+  assert.match(app, /Choose Premium or Family/);
   assert.match(app, /View Sample Analysis/);
-  assert.match(app, /Premium adds Fix it \+ next-bill tracking/);
+  assert.match(app, /Analyze your own bill after secure checkout/);
   assert.match(analytics, /bs_cta_click/);
   assert.doesNotMatch(app, /claim_billing_entitlement|stripe-webhook|password-signup/);
 });
