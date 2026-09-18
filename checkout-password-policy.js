@@ -9,9 +9,9 @@
   const allowedSymbol = /[!@#$%^&*()_+\-=\[\]{};'\\:"|<>?,.\/`~]/;
   const policy = value => ({
     length: value.length >= 10,
-    lower: /[a-z]/.test(value),
-    upper: /[A-Z]/.test(value),
-    number: /[0-9]/.test(value)
+    lower: /\p{Ll}/u.test(value),
+    upper: /\p{Lu}/u.test(value),
+    number: /\p{Nd}/u.test(value)
   });
   const meetsPolicy = checks => Object.values(checks).every(Boolean);
   const isSignup = () => /create your account/i.test(title.textContent || '') || /create account/i.test(submit.textContent || '');
