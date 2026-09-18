@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Block sensitive files
         shell: bash
@@ -48,7 +48,7 @@ jobs:
             pattern="$2"
             if git grep -n -E "$pattern" -- . ':(exclude).github/workflows/security-audit.yml' > /tmp/hits 2>/dev/null; then
               echo "::error::Possible $label detected in repository"
-              cat /tmp/hits
+              cut -d: -f1-2 /tmp/hits | sort -u
               failed=1
             fi
           }
@@ -64,6 +64,16 @@ jobs:
           scan "Slack token" 'xox[baprs]-[A-Za-z0-9-]{10,}'
           scan "private key" '-----BEGIN ([A-Z0-9 ]+ )?PRIVATE KEY-----'
           exit "$failed"
+
+      - name: Scan commit history for leaked credential formats
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='A(K|S)IA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|(sk|rk)_(live|test)_[A-Za-z0-9]{16,}|whsec_[A-Za-z0-9]{16,}|sk-proj-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|GOCSPX-[A-Za-z0-9_-]{20,}|AIza[A-Za-z0-9_-]{30,}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN ([A-Z0-9 ]+ )?PRIVATE KEY-----'
+          if git log -p --all --no-ext-diff -- . | grep -E -q "$pattern"; then
+            echo "::error::A possible credential exists in Git history. Rotate the credential and purge the affected history before treating it as safe."
+            exit 1
+          fi
 
       - name: Block obvious secret assignments
         shell: bash
