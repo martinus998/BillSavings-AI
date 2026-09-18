@@ -1,6 +1,6 @@
 // Set only confirmed public support details and the live Stripe-hosted portal link.
 // Empty values deliberately render no unconfigured links.
-const BILL_SUPPORT_EMAIL = 'Martinus998@azet.sk';
+const BILL_SUPPORT_EMAIL = '';
 const BILL_PORTAL_URL = 'https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1sQ00';
 
 (() => {
