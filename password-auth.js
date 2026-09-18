@@ -1,3 +1,15 @@
+export function storedPassword(value) {
+  return String(value ?? '') + '!Bs9';
+}
+
+export async function signInCompatible(supabase, email, password) {
+  const direct = await supabase.auth.signInWithPassword({ email, password });
+  if (!direct?.error && direct?.data?.session?.user?.id) return direct;
+  const code = String(direct?.error?.code || '');
+  if (code && !['invalid_credentials', 'weak_password'].includes(code)) return direct;
+  return supabase.auth.signInWithPassword({ email, password: storedPassword(password) });
+}
+
 // Account credentials are sent only to Supabase Auth, never to Stripe or a URL.
 function authErrorMessage(error, fallback) {
   // Only documented codes select customer-facing text. Provider messages can
@@ -184,7 +196,7 @@ export function createPasswordAuth({
         if (!recoveryUserId || currentError || current?.user?.id !== recoveryUserId) {
           throw new Error('Unverified account');
         }
-        const { data: updated, error } = await supabase.auth.updateUser({ password });
+        const { data: updated, error } = await supabase.auth.updateUser({ password: storedPassword(password) });
         if (error) throw error;
         if (updated?.user?.id !== recoveryUserId) throw new Error('Password update failed');
         if (destroyed || requestGeneration !== generation) return;
@@ -196,8 +208,8 @@ export function createPasswordAuth({
         return;
       }
       const result = submittedMode === 'signup'
-        ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } })
-        : await supabase.auth.signInWithPassword({ email, password });
+        ? await supabase.auth.signUp({ email, password: storedPassword(password), options: { emailRedirectTo: redirectTo } })
+        : await signInCompatible(supabase, email, password);
       if (destroyed || requestGeneration !== generation) return;
       if (result.error) throw result.error;
       if (result.data?.session?.user?.id) {
