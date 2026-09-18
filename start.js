@@ -1,7 +1,7 @@
 import './live-tracker.js?v=20260917-live1';
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, initialAuthReturn } from './account-session.js';
 import { createCheckoutAccess } from './checkout-access.js?v=20260917-password';
-import { createPasswordAuth } from './password-auth.js?v=20260917-auth-errors';
+import { createPasswordAuth, signInWithCompatiblePassword } from './password-auth.js?v=20260918-compatpass1';
 
 const authReturnState = initialAuthReturn;
 const qs = new URLSearchParams(location.search);
@@ -92,7 +92,7 @@ $('authForm').addEventListener('submit', async (event) => {
       throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
     }
 
-    const {data,error} = await supabase.auth.signInWithPassword({email,password});
+    const {data,error} = await signInWithCompatiblePassword(supabase,email,password);
     if (error || !data?.session?.user?.id) {
       passwordAuth.setBusy(false);
       passwordAuth.setMode('signin');
