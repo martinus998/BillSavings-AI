@@ -1,6 +1,6 @@
 import './live-tracker.js?v=20260917-live1';
 import {supabase, initialAuthReturn} from './account-session.js';
-import {createPasswordAuth} from './password-auth.js?v=20260918-compatpass1';
+import {createPasswordAuth} from './password-auth.js?v=20260917-auth-errors';
 
 const $ = id => document.getElementById(id);
 const LINKS = {
@@ -13,13 +13,6 @@ const requestedPlan = query.get('plan');
 const plan = Object.hasOwn(LINKS, requestedPlan) ? requestedPlan : null;
 let busy = false, generation = 0, recovering = initialAuthReturn.type === 'recovery';
 let callbackFailed = initialAuthReturn.failed;
-async function signInCompatible(email, password) {
-  const direct = await supabase.auth.signInWithPassword({email, password});
-  if (!direct?.error && direct?.data?.session?.user?.id) return direct;
-  const code = String(direct?.error?.code || '');
-  if (code && !['invalid_credentials','weak_password'].includes(code)) return direct;
-  return supabase.auth.signInWithPassword({email, password: password + '!Bs9'});
-}
 
 function status(message, error = false) {
   $('checkoutStatus').textContent = message;
@@ -73,7 +66,7 @@ $('authForm').addEventListener('submit', async (event) => {
       throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
     }
 
-    const {data, error} = await signInCompatible(email, password);
+    const {data, error} = await supabase.auth.signInWithPassword({email, password});
     if (error || !data?.session?.user?.id) {
       busy = false;
       auth.setBusy(false);
