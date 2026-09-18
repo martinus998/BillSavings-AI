@@ -248,3 +248,72 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountConversionFocus, { once: true });
   else mountConversionFocus();
 })();
+
+
+// KEEP MORE OF WHAT YOU SAVE
+// Marketing comparison layer: factual price-model contrast only. No competitor names or stale prices.
+(function () {
+  function mountKeepMoreValue() {
+    const path = window.location?.pathname || '';
+    if (!(path === '/' || path.endsWith('/index.html'))) return;
+    const pricing = document.getElementById('pricing');
+    if (!pricing || document.getElementById('keep-more-value')) return;
+
+    const plans = Array.from(pricing.querySelectorAll('.plan'));
+    const premium = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Premium');
+    const family = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
+
+    const addKeepBadge = (plan, label) => {
+      if (!plan || plan.querySelector('.keep-savings-badge')) return;
+      const price = plan.querySelector('.price');
+      if (!price) return;
+      const badge = document.createElement('div');
+      badge.className = 'keep-savings-badge';
+      badge.textContent = label;
+      price.insertAdjacentElement('afterend', badge);
+    };
+    addKeepBadge(premium, 'NO SUCCESS FEE • KEEP 100% OF YOUR SAVINGS');
+    addKeepBadge(family, 'NO SUCCESS FEE • KEEP 100% OF YOUR SAVINGS');
+
+    const section = document.createElement('section');
+    section.id = 'keep-more-value';
+    section.className = 'keep-more-value';
+    section.innerHTML = `
+      <div class="keep-more-copy">
+        <div class="kicker">KEEP MORE OF WHAT YOU SAVE</div>
+        <h2>A flat monthly price. No cut of your savings.</h2>
+        <p>Some bill-negotiation services charge a percentage of the savings they secure. BillSavings AI uses a simple subscription instead: Premium is $8.99/month and we do not take a success fee from savings you achieve.</p>
+        <div class="keep-more-points">
+          <span><b>$8.99/mo</b><small>Premium launch price</small></span>
+          <span><b>0%</b><small>of your savings taken by BillSavings</small></span>
+          <span><b>100%</b><small>of any savings you achieve stays with you</small></span>
+        </div>
+        <p class="keep-more-note">Different services include different features. BillSavings gives you analysis, action scripts and follow-up tracking; you contact the provider yourself. Savings are not guaranteed.</p>
+      </div>
+      <div class="keep-more-cta">
+        <strong>Find one removable $9 monthly charge?</strong>
+        <span>That one charge alone is roughly the price of a month of Premium.</span>
+        <a class="btn primary" data-bs-cta="value_pricing" href="/start.html?free=1">Check My Bill Free →</a>
+      </div>
+    `;
+
+    pricing.insertAdjacentElement('beforebegin', section);
+
+    if (!document.getElementById('keep-more-value-style')) {
+      const style = document.createElement('style');
+      style.id = 'keep-more-value-style';
+      style.textContent = `
+        .keep-savings-badge{margin:8px 0 2px;color:#79efce;font-size:9px;font-weight:950;letter-spacing:.55px}
+        .keep-more-value{margin:18px 20px;padding:20px;border:1px solid rgba(82,222,183,.22);border-radius:20px;background:linear-gradient(145deg,rgba(7,40,55,.93),rgba(5,23,43,.96));display:grid;grid-template-columns:1.35fr .65fr;gap:18px;align-items:center;box-shadow:0 14px 36px rgba(0,7,22,.22)}
+        .keep-more-value h2{margin:5px 0 7px;font-size:24px}.keep-more-value p{margin:0;color:#a6bdd3;line-height:1.6;font-size:12px}
+        .keep-more-points{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}.keep-more-points span{padding:12px;border:1px solid rgba(105,210,182,.16);border-radius:13px;background:rgba(7,35,46,.7)}.keep-more-points b{display:block;color:#82f0cf;font-size:17px}.keep-more-points small{display:block;margin-top:3px;color:#9fb9c9;font-size:9px;line-height:1.35}
+        .keep-more-note{font-size:9px!important;color:#7898ad!important}.keep-more-cta{padding:17px;border:1px solid rgba(105,177,255,.17);border-radius:16px;background:rgba(6,28,53,.72)}.keep-more-cta strong{display:block;font-size:16px}.keep-more-cta span{display:block;margin:6px 0 12px;color:#9eb8d1;font-size:11px;line-height:1.45}.keep-more-cta .btn{width:100%;text-align:center}
+        @media(max-width:760px){.keep-more-value{margin:10px;padding:14px;grid-template-columns:1fr}.keep-more-value h2{font-size:18px}.keep-more-value p{font-size:10px}.keep-more-points{grid-template-columns:1fr}.keep-more-points span{padding:10px}.keep-more-cta{padding:13px}}
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountKeepMoreValue, { once: true });
+  else mountKeepMoreValue();
+})();
