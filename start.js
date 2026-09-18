@@ -42,7 +42,7 @@ function configureAccountLayout() {
   $('startCopy').textContent=showAccount?'Use your email and password to access your account and upload your bills.':'Choose a plan, create your account, then pay securely. Your selected plan stays with your account.';
 }
 function clearAccountView() {
-  accountGeneration++; activePaidPlan=false; planChecked=false; lastDocumentId=null; $('activePlan').textContent='Free Preview'; $('pricing').hidden=recoveryMode;
+  accountGeneration++; activePaidPlan=false; planChecked=false; lastDocumentId=null; $('activePlan').textContent='Payment required'; $('pricing').hidden=recoveryMode;
   $('result').hidden=true; $('result').textContent=''; $('file').value=''; $('category').value='general'; $('consent').checked=false; $('analyzeBtn').disabled=true; $('uploadBtn').disabled=false; $('userEmail').textContent=''; $('continuePurchaseBtn').hidden=true; clearStatus();
 }
 function isCurrentAccount(version,userId){return version===accountGeneration&&currentUser?.id===userId;}
