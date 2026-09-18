@@ -1,7 +1,7 @@
 import './live-tracker.js?v=20260917-live1';
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, initialAuthReturn } from './account-session.js';
 import { createCheckoutAccess } from './checkout-access.js?v=20260917-password';
-import { createPasswordAuth } from './password-auth.js?v=20260918-compatpass1';
+import { createPasswordAuth } from './password-auth.js?v=20260917-auth-errors';
 
 const authReturnState = initialAuthReturn;
 const qs = new URLSearchParams(location.search);
@@ -17,13 +17,6 @@ let activePaidPlan = false;
 let planChecked = false;
 const purchasePreferenceKey = 'billsavings.purchase-plan';
 const SIGNUP_ENDPOINT = `${SUPABASE_URL}/functions/v1/password-signup`;
-async function signInCompatible(email, password) {
-  const direct = await supabase.auth.signInWithPassword({email, password});
-  if (!direct?.error && direct?.data?.session?.user?.id) return direct;
-  const code = String(direct?.error?.code || '');
-  if (code && !['invalid_credentials','weak_password'].includes(code)) return direct;
-  return supabase.auth.signInWithPassword({email, password: password + '!Bs9'});
-}
 
 function rememberedPlan() {
   try {
@@ -99,7 +92,7 @@ $('authForm').addEventListener('submit', async (event) => {
       throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
     }
 
-    const {data,error} = await signInCompatible(email,password);
+    const {data,error} = await supabase.auth.signInWithPassword({email,password});
     if (error || !data?.session?.user?.id) {
       passwordAuth.setBusy(false);
       passwordAuth.setMode('signin');
