@@ -48,3 +48,14 @@ test('conversion-focused homepage makes the free path obvious without touching b
   assert.match(analytics, /bs_cta_click/);
   assert.doesNotMatch(app, /claim_billing_entitlement|stripe-webhook|password-signup/);
 });
+
+
+test('keep-more marketing explains the price model without overclaiming competitor pricing', () => {
+  assert.match(app, /KEEP MORE OF WHAT YOU SAVE/);
+  assert.match(app, /No cut of your savings/);
+  assert.match(app, /NO SUCCESS FEE/);
+  assert.match(app, /KEEP 100% OF YOUR SAVINGS/);
+  assert.match(app, /Different services include different features/);
+  assert.match(app, /you contact the provider yourself/);
+  assert.doesNotMatch(app, /cheapest|cheaper than all|lowest price|guaranteed savings/i);
+});
