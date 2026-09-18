@@ -101,7 +101,7 @@ async function openCheckout(options = {}) {
     get passwordOptions() {return passwordOptions;}, get authController() {return authController;},
     setUser: user => {activeUser = user;}, setGetUser: fn => {getUserResult = fn;}, setRPC: fn => {rpcResult = fn;},
     emit: (event, session = null) => authEvent(event, session),
-    credentials() {element('authEmail').value = 'typed@example.invalid'; element('authPassword').value = 'secret-password-example';},
+    credentials() {element('authEmail').value = 'typed@example.invalid'; element('authPassword').value = 'Secretpass1';},
     continue: () => element('continuePayment').click(),
     submit: () => element('authForm').submit()
   };
@@ -223,7 +223,7 @@ test('password recovery cannot open payment before the password is saved', async
   assert.equal(x.authController.mode, 'recovery');
   assert.equal(x.element('accountReady').hidden, true);
   assert.equal(x.navigations.length + x.claims.length, 0);
-  x.credentials(); x.element('authConfirm').value = 'secret-password-example';
+  x.credentials(); x.element('authConfirm').value = 'Secretpass1';
   await x.submit();
   assert.equal(x.authCalls.includes('updateUser'), true);
   assert.equal(x.navigations.length, 1);
@@ -254,7 +254,7 @@ test('confirmed password login proceeds without an extra email-link request', as
   assert.deepEqual(Object.keys(preference).sort(), ['expires', 'plan']);
   assert.equal(preference.plan, 'premium');
   assert.ok(preference.expires > Date.now());
-  assert.doesNotMatch(JSON.stringify([...x.storage.entries()]) + x.navigations.join(''), /secret-password-example|verified-owner|typed@example/);
+  assert.doesNotMatch(JSON.stringify([...x.storage.entries()]) + x.navigations.join(''), /Secretpass1|verified-owner|typed@example/);
 });
 
 test('a single in-flight checkout request suppresses duplicate clicks and sign-out interrupts pending RPC', async () => {
