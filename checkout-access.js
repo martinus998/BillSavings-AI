@@ -9,7 +9,7 @@ export function createCheckoutAccess({supabase, endpoint, publicKey, claimPaidAc
   const valid = value => /^cs_live_[A-Za-z0-9]{20,240}$/.test(value || '');
   try {
     if (valid(sessionId)) sessionStorage.setItem(key, JSON.stringify({id: sessionId, expires: Date.now() + 86400000}));
-    else if (!returned) {
+    else {
       const saved = JSON.parse(sessionStorage.getItem(key) || 'null');
       if (saved?.expires > Date.now() && valid(saved.id)) sessionId = saved.id;
     }
