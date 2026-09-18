@@ -168,7 +168,7 @@ test('an already active account stays open instead of starting another purchase'
   assert.equal(x.location.href, undefined);
 });
 
-test('recovery opens password form without buying; successful password save restores free pricing', async () => {
+test('recovery opens password form without buying; unpaid account still requires a plan', async () => {
   const x = await openAccount({hash: '#access_token=synthetic&refresh_token=synthetic&type=recovery',
     search: '?plan=family', user: confirmed()});
   assert.equal(x.recoveryStarts, 1);
@@ -177,7 +177,7 @@ test('recovery opens password form without buying; successful password save rest
   assert.equal(x.element('signedBox').classList.contains('show'), false);
   assert.equal(x.element('pricing').hidden, true);
   await x.signIn(confirmed());
-  assert.equal(x.element('signedBox').classList.contains('show'), true);
+  assert.equal(x.element('signedBox').classList.contains('show'), false);
   assert.equal(x.element('pricing').hidden, false);
   assert.equal(x.location.href, undefined);
 });
@@ -216,7 +216,7 @@ test('signout clears private account view and a delayed old claim cannot restore
 });
 
 test('old analysis response cannot appear after another account signs in', async () => {
-  const x = await openAccount({user: confirmed()});
+  const x = await openAccount({user: confirmed(), entitlement: {plan: 'premium', status: 'active'}});
   x.element('file').files = [{name: 'bill.pdf', type: 'application/pdf', size: 100}];
   await x.internals.uploadBill();
   x.element('consent').checked = true;
