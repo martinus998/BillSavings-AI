@@ -31,6 +31,28 @@ body.dashboard-home .live-status{
 }
 body.dashboard-home .wrap{width:min(1280px,calc(100% - 28px));}
 
+
+/* Keep the public page in the intended conversion order without changing any button logic. */
+body.dashboard-home .wrap{display:flex;flex-direction:column}
+body.dashboard-home .wrap>.hero{order:1}
+body.dashboard-home .wrap>#works{order:2}
+body.dashboard-home .wrap>.impact-strip{order:3}
+body.dashboard-home .wrap>.grid4{order:4}
+body.dashboard-home .wrap>.banner{order:5}
+body.dashboard-home .wrap>#keep-more-value{order:6}
+body.dashboard-home .wrap>#pricing{order:7}
+body.dashboard-home .wrap>#premium-action-value{order:8}
+body.dashboard-home .wrap>.seo-links{order:9}
+body.dashboard-home .wrap>.faq{order:10}
+body.dashboard-home .wrap>footer{order:11}
+body.dashboard-home .wrap>.launchRow{order:12}
+body.dashboard-home #keep-more-value,
+body.dashboard-home #premium-action-value{
+  border-radius:18px!important;
+  border-color:rgba(126,183,235,.22)!important;
+  box-shadow:0 14px 36px rgba(0,0,0,.18)!important;
+}
+
 body.dashboard-home .hero{
   margin-top:10px;
   border:1px solid var(--dash-line-strong)!important;
