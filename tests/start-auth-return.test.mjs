@@ -138,19 +138,16 @@ test('new customers see plans before the account form and keep their chosen plan
   assert.equal(x.location.href, '/checkout.html?plan=family');
 });
 
-test('returning-customer sign-in and free preview open the requested account form', async () => {
-  for (const [search, mode] of [['?signin=1', 'signin'], ['?free=1', 'signup']]) {
-    const x = await openAccount({search});
-    assert.equal(x.element('accountCard').hidden, false);
-    assert.equal(x.element('pricing').hidden, true);
-    assert.equal(x.passwordMode, mode);
-    assert.equal(x.location.href, undefined);
-  }
-  const x = await openAccount({search: ''});
-  x.element('freeBtn').click();
+test('returning-customer sign-in opens the account form and paid plans stay plan-first', async () => {
+  const x = await openAccount({search: '?signin=1'});
   assert.equal(x.element('accountCard').hidden, false);
   assert.equal(x.element('pricing').hidden, true);
-  assert.equal(x.passwordMode, 'signup');
+  assert.equal(x.passwordMode, 'signin');
+  assert.equal(x.location.href, undefined);
+
+  const planFirst = await openAccount({search: ''});
+  assert.equal(planFirst.element('accountCard').hidden, true);
+  assert.equal(planFirst.element('pricing').hidden, false);
 });
 
 test('signed-in accounts and payment returns stay account-first without auto-opening checkout', async () => {
@@ -195,7 +192,7 @@ test('switching accounts clears previous plan, selected file, consent and privat
   x.setRPC(() => ({data: {plan: 'free', status: 'inactive'}, error: null}));
   await x.signIn(confirmed('different-owner'));
   assert.equal(x.element('userEmail').textContent, 'different-owner@example.invalid');
-  assert.equal(x.element('activePlan').textContent, 'Free Preview');
+  assert.equal(x.element('activePlan').textContent, 'Payment required');
   assert.equal(x.element('pricing').hidden, false);
   assert.equal(x.element('file').value, '');
   assert.equal(x.element('consent').checked, false);
@@ -212,7 +209,7 @@ test('signout clears private account view and a delayed old claim cannot restore
   await x.signOut();
   resolveClaim({data: {plan: 'premium', status: 'active'}, error: null});
   await pending;
-  assert.equal(x.element('activePlan').textContent, 'Free Preview');
+  assert.equal(x.element('activePlan').textContent, 'Payment required');
   assert.equal(x.element('pricing').hidden, false);
   assert.equal(x.element('signedBox').classList.contains('show'), false);
   assert.equal(x.element('userEmail').textContent, '');
@@ -287,18 +284,17 @@ test('homepage entry buttons distinguish plans, returning sign-in and free previ
       click() {handlers.get('click')?.({preventDefault() {}});}};
   };
   const signIn = button('Sign In'), getStarted = button('Get Started'), upload = button('Upload a Bill');
-  const free = button('Get Started Free'), premium = button('Choose Premium', 'premium'), family = button('Choose Family', 'family');
+  const premium = button('Choose Premium', 'premium'), family = button('Choose Family', 'family');
   const location = {};
   const lists = {'.nav-actions .btn': [signIn, getStarted], '.cta .btn': [upload],
-    '.banner .btn': [], '#pricing .plan .btn': [free], '#pricing .paidBtn': [premium, family]};
+    '.banner .btn': [], '#pricing .plan .btn': [], '#pricing .paidBtn': [premium, family]};
   vm.runInNewContext(homepage, {window: {location}, document: {
     readyState: 'loading', addEventListener() {}, getElementById: () => null,
     querySelector: selector => selector === '.nav-actions .paidBtn' ? getStarted : null,
     querySelectorAll: selector => lists[selector] || []
   }});
   for (const [control, path] of [[getStarted, '/start.html'], [signIn, '/start.html?signin=1'],
-    [upload, '/start.html?free=1'], [free, '/start.html?free=1'],
-    [premium, '/checkout.html?plan=premium'], [family, '/checkout.html?plan=family']]) {
+    [upload, '/start.html'], [premium, '/checkout.html?plan=premium'], [family, '/checkout.html?plan=family']]) {
     control.click();
     assert.equal(location.href, path);
   }
