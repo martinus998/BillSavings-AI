@@ -1,7 +1,7 @@
 import './live-tracker.js?v=20260917-live1';
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, initialAuthReturn } from './account-session.js';
 import { createCheckoutAccess } from './checkout-access.js?v=20260917-password';
-import { createPasswordAuth } from './password-auth.js?v=20260917-auth-errors';
+import { createPasswordAuth, signInCompatible } from './password-auth.js?v=20260918-simplelogin1';
 
 const authReturnState = initialAuthReturn;
 const qs = new URLSearchParams(location.search);
@@ -70,7 +70,7 @@ $('authForm').addEventListener('submit', async (event) => {
     /[!@#$%^&*()_+\-=\[\]{};'\\:"|<>?,.\/\`~]/.test(password);
 
   if (!/^\S+@\S+\.\S+$/.test(email)) return showStatus('Enter a valid email address.', true);
-  if (!strong) return showStatus('Use at least 10 characters with uppercase, lowercase and a number.', true);
+  if (!strong) return showStatus('Use at least 10 characters with at least one letter and one number.', true);
 
   passwordAuth.setBusy(true);
   showStatus('Creating your account…');
@@ -86,13 +86,13 @@ $('authForm').addEventListener('submit', async (event) => {
     if (!response.ok) {
       const messages = {
         invalid_email: 'Enter a valid email address.',
-        invalid_password: 'Use at least 10 characters with uppercase, lowercase and a number.',
+        invalid_password: 'Use at least 10 characters with at least one letter and one number.',
         too_many_attempts: 'Too many attempts. Wait a little and try again.'
       };
       throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
     }
 
-    const {data,error} = await supabase.auth.signInWithPassword({email,password});
+    const {data,error} = await signInCompatible(supabase,email,password);
     if (error || !data?.session?.user?.id) {
       passwordAuth.setBusy(false);
       passwordAuth.setMode('signin');
