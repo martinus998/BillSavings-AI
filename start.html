@@ -2,6 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script id="checkout-proof-early-scrub">
+(()=>{try{
+  const u=new URL(location.href);
+  const id=u.searchParams.get('session_id')||'';
+  if(/^cs_live_[A-Za-z0-9]{20,240}$/.test(id)){
+    sessionStorage.setItem('billsavings.checkout-access',JSON.stringify({id,expires:Date.now()+86400000}));
+  }
+  if(u.searchParams.has('session_id')){
+    u.searchParams.delete('session_id');
+    history.replaceState(null,'',u.pathname+(u.search||'')+(u.hash||''));
+  }
+}catch{}})();
+</script>
 <script src="/account-origin.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Choose Your Plan | BillSavings AI</title>
@@ -30,7 +43,7 @@
         <p class="muted" id="accessMessage"></p>
         <button class="btn" id="accessRetryBtn" hidden>Try again</button>
         <button class="btn secondary" id="accessManualBtn">Sign in to your account</button>
-        <p class="small">Need help? <a href="mailto:Martinus998@azet.sk">Contact support</a></p>
+        <p class="small">Need help? <a href="/contact.html">Open support options</a></p>
         <div class="divider"></div>
       </div>
       <div class="login" id="loginBox"><form id="authForm">
@@ -50,7 +63,7 @@
         <div class="field"><label for="category">Bill type</label><select id="category"><option value="general">General bill</option><option value="subscription">Subscription</option><option value="utility">Utility</option><option value="bank_fee">Bank fee</option><option value="insurance">Insurance</option></select></div>
         <div class="field"><label for="file">PDF or image · max 10 MB</label><input id="file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"></div>
         <button class="btn" id="uploadBtn">Upload securely</button>
-        <button class="btn secondary" id="signOutBtn">Sign out</button><p class="small" data-customer-portal><a href="https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1sQ00">Manage or cancel your subscription</a></p><p class="small" data-customer-support>Customer support: <a href="mailto:Martinus998@azet.sk">Martinus998@azet.sk</a></p>
+        <button class="btn secondary" id="signOutBtn">Sign out</button><p class="small" data-customer-portal><a href="https://billing.stripe.com/p/login/bJedR869sfGbdtOeIC1sQ00">Manage or cancel your subscription</a></p><p class="small" data-customer-support hidden></p>
         <div class="divider"></div>
         <label class="small"><input type="checkbox" id="consent"> I agree that this non-medical document may be sent securely for AI analysis.</label>
         <button class="btn secondary" id="analyzeBtn" disabled>Analyze uploaded bill</button>
