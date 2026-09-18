@@ -100,13 +100,13 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
   bind(navStart, '/start.html');
 
   const heroUpload = Array.from(document.querySelectorAll('.cta .btn')).find(el => /upload a bill/i.test(el.textContent || ''));
-  bind(heroUpload, '/start.html?free=1');
+  bind(heroUpload, '/start.html');
 
   const bannerStart = Array.from(document.querySelectorAll('.banner .btn')).find(el => /get started today/i.test(el.textContent || ''));
   bind(bannerStart, '/start.html');
 
   const freeBtn = Array.from(document.querySelectorAll('#pricing .plan .btn')).find(el => /get started free/i.test(el.textContent || ''));
-  bind(freeBtn, '/start.html?free=1');
+  bind(freeBtn, '/start.html');
 
   bind(document.querySelector('.launchRow .paidBtn'), '/start.html');
 
@@ -192,8 +192,8 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     // Keep the redesigned homepage copy from index.html.
     // Only attach the safe destinations and analytics labels here.
     if (ctaButtons[0]) {
-      ctaButtons[0].textContent = 'Analyze My Bill Free →';
-      ctaButtons[0].setAttribute('href', '/start.html?free=1');
+      ctaButtons[0].textContent = 'Choose Your Plan →';
+      ctaButtons[0].setAttribute('href', '/start.html');
       ctaButtons[0].dataset.bsCta = 'free_preview';
     }
     if (ctaButtons[1]) {
@@ -206,7 +206,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
       const proof = document.createElement('div');
       proof.id = 'conversion-proof';
       proof.className = 'conversion-proof';
-      proof.innerHTML = '<span>✓ Free Preview — no card required</span><span>✓ Secure supported bill upload</span><span>✓ Premium adds Fix it + next-bill tracking</span>';
+      proof.innerHTML = '<span>✓ Choose Premium or Family</span><span>✓ Create your account before payment</span><span>✓ Analyze your own bill after secure checkout</span>';
       cta?.insertAdjacentElement('afterend', proof);
     }
 
@@ -282,7 +282,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
       <div class="keep-more-cta">
         <strong>Find one removable $9 monthly charge?</strong>
         <span>That one charge alone is roughly the price of a month of Premium.</span>
-        <a class="btn primary" data-bs-cta="value_pricing" href="/start.html?free=1">Check My Bill Free →</a>
+        <a class="btn primary" data-bs-cta="value_pricing" href="/start.html">Choose a Plan →</a>
       </div>
     `;
 
