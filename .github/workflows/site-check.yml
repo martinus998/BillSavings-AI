@@ -1,0 +1,203 @@
+name: BillSavings Site Check
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Validate core JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check analytics.js
+          node --check live-tracker.js
+          node --check app.js
+          node --check auth.js
+          node --check start.js
+
+      - name: Validate indexable pages and sitemap
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from urllib.parse import urlsplit
+          import xml.etree.ElementTree as ET
+          import json, sys
+
+          root = Path('.').resolve()
+          host = 'billsavingsai.com'
+          ns = {'sm': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+          errors = []
+
+          class Parser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.refs = []
+                  self.h1 = 0
+                  self.titles = []
+                  self.meta = {}
+                  self.canonicals = []
+                  self.jsonld = []
+                  self._in_title = False
+                  self._title_parts = []
+                  self._jsonld_open = False
+                  self._jsonld_parts = []
+
+              def handle_starttag(self, tag, attrs):
+                  d = dict(attrs)
+                  if tag == 'h1':
+                      self.h1 += 1
+                  if tag == 'title':
+                      self._in_title = True
+                      self._title_parts = []
+                  if tag == 'meta' and d.get('name'):
+                      self.meta[d.get('name','').lower()] = d.get('content','')
+                  if tag == 'link' and 'canonical' in (d.get('rel') or '').lower().split():
+                      self.canonicals.append(d.get('href',''))
+                  if tag == 'script' and d.get('type','').lower() == 'application/ld+json':
+                      self._jsonld_open = True
+                      self._jsonld_parts = []
+                  for key in ('href','src'):
+                      if key in d:
+                          self.refs.append((tag,key,d[key]))
+
+              def handle_endtag(self, tag):
+                  if tag == 'title' and self._in_title:
+                      self.titles.append(''.join(self._title_parts).strip())
+                      self._in_title = False
+                  if tag == 'script' and self._jsonld_open:
+                      self.jsonld.append(''.join(self._jsonld_parts).strip())
+                      self._jsonld_open = False
+
+              def handle_data(self, data):
+                  if self._in_title:
+                      self._title_parts.append(data)
+                  if self._jsonld_open:
+                      self._jsonld_parts.append(data)
+
+          urls = []
+          for sitemap_name in ('sitemap.xml','sitemap-growth.xml'):
+              sitemap_path = root / sitemap_name
+              if not sitemap_path.is_file():
+                  errors.append(f'Missing {sitemap_name}')
+                  continue
+              try:
+                  tree = ET.parse(sitemap_path)
+              except Exception as exc:
+                  errors.append(f'{sitemap_name}: invalid XML: {exc}')
+                  continue
+              for node in tree.getroot().findall('sm:url/sm:loc', ns):
+                  if node.text:
+                      url = node.text.strip()
+                      if not url.startswith(f'https://{host}/'):
+                          errors.append(f'{sitemap_name}: outside production host: {url}')
+                      urls.append(url)
+
+          urls = list(dict.fromkeys(urls))
+          if not urls:
+              errors.append('No sitemap URLs found')
+
+          seen_titles = {}
+          seen_canonicals = {}
+
+          for url in urls:
+              parsed = urlsplit(url)
+              path_part = parsed.path.lstrip('/')
+              file_name = path_part or 'index.html'
+              page = root / file_name
+              if not page.is_file():
+                  errors.append(f'Sitemap URL has no file: {url} -> {file_name}')
+                  continue
+
+              text = page.read_text(encoding='utf-8')
+              p = Parser()
+              try:
+                  p.feed(text)
+              except Exception as exc:
+                  errors.append(f'{file_name}: HTML parse error: {exc}')
+                  continue
+
+              if p.h1 != 1:
+                  errors.append(f'{file_name}: expected exactly one H1, found {p.h1}')
+              if len(p.titles) != 1 or not p.titles[0]:
+                  errors.append(f'{file_name}: expected one non-empty title')
+              else:
+                  t = p.titles[0]
+                  if t in seen_titles and seen_titles[t] != file_name:
+                      errors.append(f'Duplicate title: {file_name} and {seen_titles[t]} -> {t}')
+                  seen_titles[t] = file_name
+
+              desc = p.meta.get('description','').strip()
+              if not desc:
+                  errors.append(f'{file_name}: missing meta description')
+
+              robots = p.meta.get('robots','').lower()
+              if 'noindex' in robots:
+                  errors.append(f'{file_name}: sitemap page is noindex')
+
+              if len(p.canonicals) != 1:
+                  errors.append(f'{file_name}: expected exactly one canonical')
+              else:
+                  canonical = p.canonicals[0].strip()
+                  expected = f'https://{host}/' if file_name == 'index.html' else f'https://{host}/{file_name}'
+                  if canonical != expected:
+                      errors.append(f'{file_name}: canonical mismatch: {canonical} != {expected}')
+                  if canonical in seen_canonicals and seen_canonicals[canonical] != file_name:
+                      errors.append(f'Duplicate canonical: {file_name} and {seen_canonicals[canonical]}')
+                  seen_canonicals[canonical] = file_name
+
+              for raw in p.jsonld:
+                  if not raw:
+                      continue
+                  try:
+                      json.loads(raw)
+                  except Exception as exc:
+                      errors.append(f'{file_name}: invalid JSON-LD: {exc}')
+
+              for tag,key,ref in p.refs:
+                  if not ref or ref.startswith(('#','http://','https://','mailto:','tel:','data:','javascript:')):
+                      continue
+                  clean = urlsplit(ref).path
+                  if not clean:
+                      continue
+                  target = (root / clean.lstrip('/')) if clean.startswith('/') else (page.parent / clean)
+                  target = target.resolve()
+                  try:
+                      target.relative_to(root)
+                  except ValueError:
+                      errors.append(f'{file_name}: reference leaves site root: {ref}')
+                      continue
+                  if not target.exists():
+                      errors.append(f'{file_name}: broken local {key}: {ref}')
+
+          robots_path = root / 'robots.txt'
+          if not robots_path.is_file():
+              errors.append('Missing robots.txt')
+          else:
+              robots_text = robots_path.read_text(encoding='utf-8').lower()
+              for sitemap_name in ('sitemap.xml','sitemap-growth.xml'):
+                  if sitemap_name not in robots_text:
+                      errors.append(f'robots.txt does not reference {sitemap_name}')
+
+          if errors:
+              print('\n'.join('ERROR: '+e for e in errors))
+              sys.exit(1)
+
+          print(f'BillSavings SEO check passed for {len(urls)} indexable sitemap URLs.')
+          PY
