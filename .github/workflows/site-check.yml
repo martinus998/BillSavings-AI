@@ -186,6 +186,26 @@ jobs:
                   if not target.exists():
                       errors.append(f'{file_name}: broken local {key}: {ref}')
 
+          # Catch future public/indexable pages that were created but never added to a sitemap.
+          sitemap_urls = set(urls)
+          for page in sorted(root.glob('*.html')):
+              if page.name == '404.html' or (page.name.startswith('google') and page.name.endswith('.html')):
+                  continue
+              text = page.read_text(encoding='utf-8')
+              p = Parser()
+              try:
+                  p.feed(text)
+              except Exception as exc:
+                  errors.append(f'{page.name}: HTML parse error outside sitemap scan: {exc}')
+                  continue
+              robots = p.meta.get('robots','').lower()
+              if 'noindex' in robots or not p.canonicals:
+                  continue
+              for canonical in p.canonicals:
+                  canonical = canonical.strip()
+                  if canonical.startswith(f'https://{host}/') and canonical not in sitemap_urls:
+                      errors.append(f'{page.name}: indexable canonical missing from sitemap: {canonical}')
+
           robots_path = root / 'robots.txt'
           if not robots_path.is_file():
               errors.append('Missing robots.txt')
