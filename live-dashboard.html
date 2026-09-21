@@ -28,6 +28,7 @@
 <div class="card listbox"><h3>RepairCostMatch · top pages today</h3><div id="rPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
 <div class="card listbox"><h3>Traffic sources today</h3><div id="sources" class="traffic-list"><div class="empty">No source data yet.</div></div></div>
 </section>
+<section class="card listbox" style="margin-top:14px"><h3>Recent visits today</h3><div id="recentVisits" class="traffic-list"><div class="empty">No visit data yet.</div></div></section>
 <div class="status" id="status">Updates automatically every 15 seconds. “Online now” means seen within roughly the last 90 seconds.</div>
 </main>
 <script>
@@ -45,6 +46,17 @@
     if(!rows.length){root.innerHTML='<div class="empty">No data yet.</div>';return;}
     root.innerHTML=rows.map(x=>'<div class="traffic-row"><span title="'+String(x.name||'').replace(/"/g,'&quot;')+'">'+String(x.name||'Unknown')+'</span><b>'+String(x.count||0)+'</b></div>').join('');
   };
+  const renderRecent=(items)=>{
+    const root=$('recentVisits');
+    const rows=Array.isArray(items)?items:[];
+    if(!rows.length){root.innerHTML='<div class="empty">No visit data yet.</div>';return;}
+    root.innerHTML=rows.map(x=>{
+      const site=x.site==='repaircostmatch'?'RepairCostMatch':'BillSavings';
+      const time=x.created_at?new Date(x.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
+      const label=site+' · '+(x.path||'/')+' · '+(x.source||'Direct');
+      return '<div class="traffic-row"><span title="'+label.replace(/"/g,'&quot;')+'">'+label+'</span><b>'+time+'</b></div>';
+    }).join('');
+  };
   async function load(){
     if(!key)return;
     try{
@@ -57,6 +69,7 @@
       renderList('bPages',d.top_pages?.billsavings||[]);
       renderList('rPages',d.top_pages?.repaircostmatch||[]);
       renderList('sources',d.sources||[]);
+      renderRecent(d.recent||[]);
       $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
       $('status').textContent='Live · auto-refresh every 15 seconds · online = active within ~90 seconds';
     }catch(e){$('status').textContent=e.message||'Could not refresh live data.';}
