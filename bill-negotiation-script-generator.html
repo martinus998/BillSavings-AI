@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bill Negotiation Script Generator | BillSavings AI</title>
+<meta name="description" content="Create a free bill negotiation call script for internet, cable, phone or other recurring service bills. Prepare your questions before you contact the provider.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://billsavingsai.com/bill-negotiation-script-generator.html">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:site_name" content="BillSavings AI">
+<meta property="og:title" content="Bill Negotiation Script Generator | BillSavings AI">
+<meta property="og:description" content="Build a clear provider call script from the bill problem you want to discuss.">
+<meta property="og:url" content="https://billsavingsai.com/bill-negotiation-script-generator.html">
+<meta property="og:image" content="https://billsavingsai.com/logo.svg">
+<link rel="stylesheet" href="seo.css">
+<style>
+.tool{margin:22px 0;padding:22px;border:1px solid #294a68;border-radius:18px;background:#071b30}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:7px;color:#bfd2e3;font-weight:800;font-size:13px}.field.wide{grid-column:1/-1}
+.field input,.field select,.field textarea{width:100%;padding:12px 13px;border:1px solid #385d7d;border-radius:10px;background:#041323;color:#fff;font:inherit}.field textarea{min-height:90px;resize:vertical}
+.tool-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.tool button{padding:12px 16px;border:0;border-radius:10px;background:#347cff;color:white;font-weight:900;cursor:pointer}.tool button.secondary{background:#173752}
+.output{margin-top:16px;padding:16px;border:1px solid #315b7e;border-radius:12px;background:#041323;white-space:pre-wrap;color:#eaf5ff;line-height:1.6}
+.privacy-note{color:#9db6cc;font-size:12px;margin-top:10px}
+@media(max-width:700px){.formgrid{grid-template-columns:1fr}.field.wide{grid-column:auto}}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://billsavingsai.com/#organization","name":"BillSavings AI","url":"https://billsavingsai.com/","logo":"https://billsavingsai.com/logo.svg"},{"@type":"WebApplication","name":"Bill Negotiation Script Generator","url":"https://billsavingsai.com/bill-negotiation-script-generator.html","applicationCategory":"FinanceApplication","operatingSystem":"Web","isAccessibleForFree":true,"description":"A free tool for preparing a provider call script for recurring consumer bills."},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://billsavingsai.com/"},{"@type":"ListItem","position":2,"name":"Bill Guides","item":"https://billsavingsai.com/bill-guides.html"},{"@type":"ListItem","position":3,"name":"Bill Negotiation Script Generator","item":"https://billsavingsai.com/bill-negotiation-script-generator.html"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What should I say when negotiating a bill?","acceptedAnswer":{"@type":"Answer","text":"Start by confirming the current price and recent changes, explain what you want reviewed, ask about available plans or discounts, and confirm any changes before ending the call."}},{"@type":"Question","name":"Does this tool contact the provider for me?","acceptedAnswer":{"@type":"Answer","text":"No. It creates a planning script in your browser so you can make the call or chat yourself."}},{"@type":"Question","name":"Does BillSavings AI guarantee a lower bill?","acceptedAnswer":{"@type":"Answer","text":"No. Provider offers, eligibility and account terms vary, so no script or bill-review tool can guarantee a reduction."}}]}]}
+</script>
+</head>
+<body><div class="wrap">
+<nav class="nav"><a class="brand" href="/">BillSavings <span>AI</span></a><a class="cta" href="/ai-bill-checker.html">Check My Bill</a></nav>
+<main>
+<section class="hero"><div class="eyebrow">Free provider-call tool</div><h1>Bill negotiation script generator</h1><p>Prepare what you want to say before you call or chat with an internet, cable, phone or other recurring-service provider. The script stays in your browser and can be copied when you are ready.</p></section>
+
+<section class="tool" aria-labelledby="toolTitle"><h2 id="toolTitle">Build your provider call script</h2>
+<div class="formgrid">
+<label class="field">Bill type<select id="billType"><option>Internet</option><option>Cable / TV</option><option>Cell phone</option><option>Home security</option><option>Subscription</option><option>Other recurring service</option></select></label>
+<label class="field">Main issue<select id="issue"><option value="increase">My monthly price increased</option><option value="promo">A promotion or discount ended</option><option value="fees">I found fees or add-ons to review</option><option value="plan">I want a lower-cost plan</option><option value="competitor">I found a competing offer</option></select></label>
+<label class="field">Current monthly bill ($)<input id="current" type="number" min="0" step="1" placeholder="e.g. 95"></label>
+<label class="field">Previous or target amount ($)<input id="target" type="number" min="0" step="1" placeholder="e.g. 75"></label>
+<label class="field wide">Optional note<input id="note" maxlength="180" placeholder="e.g. I have been a customer for 4 years"></label>
+</div>
+<div class="tool-actions"><button id="generate" type="button">Generate script</button><button id="copy" class="secondary" type="button">Copy script</button></div>
+<div class="output" id="output" aria-live="polite">Choose your situation, then tap “Generate script.”</div>
+<p class="privacy-note">Nothing entered here is submitted to BillSavings AI. This tool runs locally in your browser.</p>
+</section>
+
+<section class="section"><h2>A strong bill-negotiation call has four parts</h2><div class="steps">
+<div class="step"><b>1. Confirm what changed</b><p>Start with the current bill and the exact price, discount or fee you want reviewed.</p></div>
+<div class="step"><b>2. Ask for available options</b><p>Ask about current plans, promotions, loyalty discounts and ways to remove unwanted add-ons.</p></div>
+<div class="step"><b>3. Compare the full monthly total</b><p>A lower base price may come with equipment, contract or autopay changes. Confirm the all-in amount.</p></div>
+<div class="step"><b>4. Verify the next bill</b><p>Write down the confirmation number or change details and check the following statement.</p></div>
+</div></section>
+
+<section class="section"><h2>Before the call</h2><p>Use the <a href="/ai-bill-checker.html">AI bill checker</a> to identify the change first. If you are considering paying a third party to negotiate for you, use the <a href="/bill-negotiation-fee-calculator.html">bill negotiation fee calculator</a> to compare the service fee with the savings you would keep.</p></section>
+
+<section class="faq"><h2>Frequently asked questions</h2>
+<h3>Should I threaten to cancel immediately?</h3><p>Usually it is better to first understand your options and the full consequences of changing or canceling service. Ask clear questions and decide after you know the terms.</p>
+<h3>Should I mention a competing offer?</h3><p>If you have a real current offer, you can mention it accurately and ask whether your provider has a comparable option. Do not invent an offer.</p>
+<h3>What should I verify before ending the call?</h3><p>Confirm the new monthly total, start date, discount duration, equipment or contract changes, and whether any one-time fees will appear.</p>
+</section>
+
+<section class="note">This is an educational planning tool. It does not represent you, contact providers or guarantee savings.</section>
+<div class="links"><a href="/bill-negotiation-fee-calculator.html">Negotiation Fee Calculator</a><a href="/ai-bill-checker.html">AI Bill Checker</a><a href="/lower-monthly-bills.html">Lower Monthly Bills</a><a href="/reduce-internet-bill.html">Lower Internet Bill</a><a href="/lower-cell-phone-bill.html">Lower Cell Phone Bill</a><a href="/bill-guides.html">All Bill Guides</a></div>
+</main>
+<footer class="footer"><a href="/">Home</a><a href="/bill-guides.html">Bill Guides</a><a href="/about.html">About</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Contact</a></footer>
+</div>
+<script>
+(()=>{
+ const $=id=>document.getElementById(id);
+ const issueLines={
+   increase:"I noticed that my monthly price increased and I'd like to understand exactly what changed.",
+   promo:"It looks like a promotion or discount ended. I'd like to review the current price and the options available now.",
+   fees:"I found fees or add-ons on the bill that I'd like to review and understand before the next billing cycle.",
+   plan:"I'd like to review whether there is a lower-cost plan that still fits how I use the service.",
+   competitor:"I am comparing my current service with another available offer and I'd like to know what options you can provide on my account."
+ };
+ function money(v){const n=parseFloat(v);return Number.isFinite(n)&&n>=0?'$'+n.toFixed(2):''}
+ function generate(){
+   const type=$('billType').value, issue=$('issue').value, cur=money($('current').value), target=money($('target').value), note=$('note').value.trim();
+   let s="Hello, I'm calling about my "+type.toLowerCase()+" bill. "+issueLines[issue];
+   if(cur) s+=" My current monthly bill is about "+cur+".";
+   if(target) s+=" I was previously paying or would like to get closer to "+target+" if there is an eligible option.";
+   if(note) s+=" "+note.replace(/[\r\n]+/g,' ')+".";
+   s+="\n\nCould you please review my account and tell me:\n• what caused the current price or charges;\n• which current plans, promotions or loyalty discounts I qualify for;\n• whether any optional add-ons can be removed;\n• the full monthly total after any change, including equipment and recurring fees;\n• whether the change creates a contract, one-time fee or affects autopay discounts.\n\nBefore we finish, please confirm the new monthly total, when it starts, how long any discount lasts and what I should expect on the next bill. Thank you.";
+   $('output').textContent=s;
+ }
+ $('generate').addEventListener('click',generate);
+ $('copy').addEventListener('click',async()=>{const t=$('output').textContent;if(!t||t.startsWith('Choose your'))return;try{await navigator.clipboard.writeText(t);$('copy').textContent='Copied';setTimeout(()=>$('copy').textContent='Copy script',1400)}catch{}});
+})();
+</script>
+</body></html>
