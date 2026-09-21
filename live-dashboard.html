@@ -6,7 +6,7 @@
 <title>Private Live Dashboard</title>
 <style>
 :root{color-scheme:dark;--bg:#06111f;--panel:#0b1d32;--line:#1f476d;--text:#f5f9ff;--muted:#9ab8d4;--good:#63e7bd;--blue:#65adff}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#06111f,#07192d);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}.wrap{max-width:1100px;margin:auto;padding:22px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.top h1{margin:0;font-size:clamp(28px,6vw,46px)}.top p{margin:6px 0 0;color:var(--muted)}.pill{padding:8px 12px;border:1px solid #225379;border-radius:999px;color:#b8d7f2;background:#0a2340;font-size:13px;white-space:nowrap}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.card{padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}.card .label{color:var(--muted);font-size:13px}.card .value{font-size:34px;font-weight:900;margin-top:5px}.online .value{color:var(--good)}.sites{display:grid;grid-template-columns:1fr 1fr;gap:14px}.site h2{margin:0 0 14px;font-size:22px}.rows{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mini{padding:14px;border-radius:14px;background:#07182a;border:1px solid #173c60}.mini b{display:block;font-size:24px}.mini span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.status{margin-top:16px;padding:13px 15px;border:1px solid #214a71;border-radius:14px;background:#081d34;color:#b9d4ee}.login{max-width:460px;margin:90px auto 0;padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}.login h1{margin-top:0}.login input{width:100%;padding:14px;border:1px solid #315d87;border-radius:12px;background:#061426;color:#fff;font:inherit}.login button{width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;background:#347cff;color:#fff;font-weight:800;font:inherit}.hide{display:none!important}@media(max-width:800px){.grid,.rows{grid-template-columns:1fr 1fr}.sites{grid-template-columns:1fr}.wrap{padding:14px}}@media(max-width:420px){.grid{grid-template-columns:1fr 1fr}.card .value{font-size:28px}.top{display:block}.pill{display:inline-block;margin-top:10px}}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#06111f,#07192d);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}.wrap{max-width:1100px;margin:auto;padding:22px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.top h1{margin:0;font-size:clamp(28px,6vw,46px)}.top p{margin:6px 0 0;color:var(--muted)}.pill{padding:8px 12px;border:1px solid #225379;border-radius:999px;color:#b8d7f2;background:#0a2340;font-size:13px;white-space:nowrap}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.card{padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}.card .label{color:var(--muted);font-size:13px}.card .value{font-size:34px;font-weight:900;margin-top:5px}.online .value{color:var(--good)}.sites{display:grid;grid-template-columns:1fr 1fr;gap:14px}.site h2{margin:0 0 14px;font-size:22px}.rows{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mini{padding:14px;border-radius:14px;background:#07182a;border:1px solid #173c60}.mini b{display:block;font-size:24px}.mini span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.traffic-extra{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:14px}.listbox h3{margin:0 0 10px;font-size:16px}.traffic-list{display:grid;gap:8px}.traffic-row{display:flex;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid #173c60;border-radius:10px;background:#07182a}.traffic-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dcecff}.traffic-row b{color:#8fc7ff}.empty{color:var(--muted);font-size:13px}.status{margin-top:16px;padding:13px 15px;border:1px solid #214a71;border-radius:14px;background:#081d34;color:#b9d4ee}.login{max-width:460px;margin:90px auto 0;padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}.login h1{margin-top:0}.login input{width:100%;padding:14px;border:1px solid #315d87;border-radius:12px;background:#061426;color:#fff;font:inherit}.login button{width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;background:#347cff;color:#fff;font-weight:800;font:inherit}.hide{display:none!important}@media(max-width:800px){.grid,.rows{grid-template-columns:1fr 1fr}.sites,.traffic-extra{grid-template-columns:1fr}.wrap{padding:14px}}@media(max-width:420px){.grid{grid-template-columns:1fr 1fr}.card .value{font-size:28px}.top{display:block}.pill{display:inline-block;margin-top:10px}}
 </style>
 </head>
 <body>
@@ -23,6 +23,11 @@
 <div class="card site"><h2>BillSavings AI</h2><div class="rows"><div class="mini"><b id="bOnline">0</b><span>Online now</span></div><div class="mini"><b id="bVisitors">0</b><span>Visitors today</span></div><div class="mini"><b id="bSessions">0</b><span>Sessions today</span></div><div class="mini"><b id="bViews">0</b><span>Page views today</span></div></div></div>
 <div class="card site"><h2>RepairCostMatch</h2><div class="rows"><div class="mini"><b id="rOnline">0</b><span>Online now</span></div><div class="mini"><b id="rVisitors">0</b><span>Visitors today</span></div><div class="mini"><b id="rSessions">0</b><span>Sessions today</span></div><div class="mini"><b id="rViews">0</b><span>Page views today</span></div></div></div>
 </section>
+<section class="traffic-extra">
+<div class="card listbox"><h3>BillSavings · top pages today</h3><div id="bPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
+<div class="card listbox"><h3>RepairCostMatch · top pages today</h3><div id="rPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
+<div class="card listbox"><h3>Traffic sources today</h3><div id="sources" class="traffic-list"><div class="empty">No source data yet.</div></div></div>
+</section>
 <div class="status" id="status">Updates automatically every 15 seconds. “Online now” means seen within roughly the last 90 seconds.</div>
 </main>
 <script>
@@ -34,6 +39,12 @@
   const hash=new URLSearchParams(location.hash.replace(/^#/,''));
   if(hash.get('key')){key=hash.get('key');try{sessionStorage.setItem('bs_live_dashboard_key',key);}catch{}history.replaceState(null,'',location.pathname);}
   const set=(id,v)=>{$(id).textContent=String(v??0)};
+  const renderList=(id,items)=>{
+    const root=$(id);
+    const rows=Array.isArray(items)?items:[];
+    if(!rows.length){root.innerHTML='<div class="empty">No data yet.</div>';return;}
+    root.innerHTML=rows.map(x=>'<div class="traffic-row"><span title="'+String(x.name||'').replace(/"/g,'&quot;')+'">'+String(x.name||'Unknown')+'</span><b>'+String(x.count||0)+'</b></div>').join('');
+  };
   async function load(){
     if(!key)return;
     try{
@@ -43,6 +54,9 @@
       set('tOnline',t.online_now);set('tVisitors',t.visitors_today);set('tSessions',t.sessions_today);set('tViews',t.pageviews_today);
       set('bOnline',b.online_now);set('bVisitors',b.visitors_today);set('bSessions',b.sessions_today);set('bViews',b.pageviews_today);
       set('rOnline',r.online_now);set('rVisitors',r.visitors_today);set('rSessions',r.sessions_today);set('rViews',r.pageviews_today);
+      renderList('bPages',d.top_pages?.billsavings||[]);
+      renderList('rPages',d.top_pages?.repaircostmatch||[]);
+      renderList('sources',d.sources||[]);
       $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
       $('status').textContent='Live · auto-refresh every 15 seconds · online = active within ~90 seconds';
     }catch(e){$('status').textContent=e.message||'Could not refresh live data.';}
