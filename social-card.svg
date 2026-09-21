@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#06111f"/><stop offset="0.55" stop-color="#0a2846"/><stop offset="1" stop-color="#07172b"/>
+  </linearGradient>
+  <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#41d7ff"/><stop offset="1" stop-color="#4e89ff"/>
+  </linearGradient>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<circle cx="1050" cy="80" r="250" fill="#1e63ff" opacity=".08"/>
+<circle cx="1110" cy="520" r="300" fill="#29d99a" opacity=".05"/>
+<rect x="70" y="64" width="1060" height="502" rx="34" fill="#081c31" stroke="#24547b" stroke-width="2"/>
+<g transform="translate(112 112)">
+  <rect width="74" height="74" rx="20" fill="url(#accent)"/>
+  <text x="37" y="51" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800" fill="white">B</text>
+  <text x="96" y="48" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="800" fill="#f5f9ff">BillSavings AI</text>
+  <text x="0" y="150" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="900" fill="#f5f9ff">Understand the bill.</text>
+  <text x="0" y="220" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="900" fill="url(#accent)">Keep more of the savings.</text>
+  <text x="0" y="290" font-family="Arial,Helvetica,sans-serif" font-size="27" fill="#a9c3da">Free bill calculators, fee guides and negotiation tools</text>
+  <g transform="translate(0 340)">
+    <rect width="250" height="56" rx="28" fill="#0f3558" stroke="#2e6a99"/>
+    <text x="125" y="36" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" fill="#aee3ff">Bill change calculator</text>
+    <rect x="270" width="250" height="56" rx="28" fill="#0f3558" stroke="#2e6a99"/>
+    <text x="395" y="36" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" fill="#aee3ff">Fee calculator</text>
+    <rect x="540" width="265" height="56" rx="28" fill="#0f3558" stroke="#2e6a99"/>
+    <text x="672.5" y="36" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" fill="#aee3ff">Negotiation script</text>
+  </g>
+</g>
+<text x="1080" y="535" text-anchor="end" font-family="Arial,Helvetica,sans-serif" font-size="20" fill="#7fa6c5">billsavingsai.com</text>
+</svg>
