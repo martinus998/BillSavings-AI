@@ -59,8 +59,22 @@ jobs:
           </script>"""
           for page in Path("_site").glob("*.html"):
               html = page.read_text(encoding="utf-8")
+
+              # Ensure every public BillSavings page is counted by the private live dashboard.
+              # Pages that already load analytics.js get live-tracker.js from analytics.js.
+              if (page.name != "live-dashboard.html"
+                      and "analytics.js" not in html
+                      and "live-tracker.js" not in html):
+                  tracker = '<script src="/live-tracker.js?v=20260921-allpages1" defer></script>'
+                  if "</head>" in html:
+                      html = html.replace("</head>", tracker + "</head>", 1)
+                  elif "<body" in html:
+                      html = html.replace("<body", tracker + "<body", 1)
+
               if "<head>" in html:
-                  page.write_text(html.replace("<head>", "<head>" + redirect, 1), encoding="utf-8")
+                  html = html.replace("<head>", "<head>" + redirect, 1)
+
+              page.write_text(html, encoding="utf-8")
           PY
 
       - name: Configure Pages
