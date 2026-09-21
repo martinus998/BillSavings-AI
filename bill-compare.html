@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-7BwS6PwpRgGBuRd3775q51c/b+dGd0szY2LWSRQD72c=' 'sha256-Ih1vOxtdHg28PrtEm8zzBkM/oC1+cdedNTCwEPPWDRU=' https://billsavingsai.com/live-tracker.js; style-src 'sha256-iuReZrMWGlcCSQkGMPzFrRq1d2drC0jAphKhdwny4bo='; img-src 'self'; connect-src https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/live-analytics/collect; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer"><meta name="robots" content="index,follow">
+<title>Compare Two Bills Line by Line | BillSavings AI</title>
+<meta name="description" content="Compare old and new bill line items, spot changed charges and missing credits, and reconcile your totals. Free, local text comparison with no document upload to a server.">
+<link rel="canonical" href="https://billsavingsai.com/bill-compare.html"><link rel="icon" href="/logo.svg">
+<style>
+:root{color-scheme:dark;--bg:#061426;--panel:#0b2138;--ink:#eff7ff;--muted:#b4cbe1;--line:#315571;--accent:#67caff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,sans-serif}main,header,footer{max-width:1160px;margin:auto;padding:20px}header{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line)}a{color:var(--accent)}.brand{font-weight:850;text-decoration:none}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--accent)}h1{font-size:clamp(28px,4vw,42px);line-height:1.15;margin:12px 0}h2{font-size:22px;margin:0 0 12px}p{margin:10px 0}.muted,small{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:16px;margin-top:18px;min-width:0}label{display:block;font-weight:650;margin:10px 0}textarea,input{width:100%;padding:12px;background:#041325;color:var(--ink);border:1px solid var(--line);border-radius:8px;font:inherit}textarea{resize:vertical;min-height:205px;font-family:ui-monospace,monospace;font-size:14px}input[type=checkbox]{width:auto;margin-right:8px}input[type=file]{font-size:13px}button{padding:12px 16px;border-radius:9px;border:1px solid var(--line);color:var(--ink);background:#173957;font:inherit;font-weight:750;cursor:pointer}button.primary{background:#12608a}button:disabled{opacity:.5;cursor:not-allowed}button:hover:not(:disabled){border-color:var(--accent)}:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.metric{background:#041325;border:1px solid var(--line);border-radius:12px;padding:14px}.metric strong{display:block;font-size:26px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:700px}td,th{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--accent)}td small{display:block}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}#status{white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid var(--accent);padding:12px;margin:14px 0}#status:empty{display:none}.notice{border-left:3px solid var(--accent);padding:10px 14px;background:#102b43}details{margin-top:18px}summary{cursor:pointer;font-weight:750}.out{margin-top:18px}[hidden]{display:none!important}footer{font-size:14px}.copybox{min-height:130px}@media(max-width:720px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr}main,header,footer{padding:14px}.panel{padding:15px}header{flex-wrap:wrap}}@media print{header,footer,.input-area,.actions,#status{display:none!important}body{background:white;color:black;font-size:11pt}.panel,.metric{background:white;color:black;border-color:#bbb}.muted,small,th{color:#333}.table-wrap{overflow:visible}table{min-width:0;font-size:9pt}main{padding:0}.metric strong{font-size:18pt}}
+</style></head><body>
+<header><a class="brand" href="/">BillSavings AI</a><a href="/free-bill-tools.html">All free tools</a></header>
+<main>
+<div class="eyebrow">BILL-VS-BILL COMPARISON · TEXT EDITION</div>
+<h1>What changed on your bill?</h1>
+<p class="muted">Compare individual charges and credits, not just the final total. Nothing entered here is sent to a server. This tool compares text you verify; it does not use AI to decide whether a charge is wrong.</p>
+<div class="input-area">
+<p class="notice">Paste selected line items from two bills, or open UTF-8 .txt files (up to 100 KB). Format: <strong>Label | amount</strong>, one item per line. Use U.S. dollar amounts; enter credits as negative numbers. PDFs and photos are not read directly in this version.</p>
+<div class="actions"><button id="sample" type="button">Try a labelled example</button><button id="clear" type="button">Clear all data</button></div>
+<div class="grid">
+<section class="panel"><h2>1. Older bill</h2><label for="oldFile">Open a local text file</label><input id="oldFile" type="file" accept=".txt,text/plain"><label for="oldText">Charges and credits</label><textarea id="oldText" spellcheck="false" maxlength="100000" autocomplete="off" placeholder="Internet service | 70.00&#10;Promotion credit | -20.00&#10;Equipment | 10.00"></textarea><label for="oldTotal">Total of these selected items ($, optional)</label><input id="oldTotal" type="text" inputmode="decimal" autocomplete="off" maxlength="30" placeholder="60.00"><small>Use the whole statement total only when you entered every item that contributes to it.</small></section>
+<section class="panel"><h2>2. Newer bill</h2><label for="newFile">Open a local text file</label><input id="newFile" type="file" accept=".txt,text/plain"><label for="newText">Charges and credits</label><textarea id="newText" spellcheck="false" maxlength="100000" autocomplete="off" placeholder="Internet service | 82.00&#10;Equipment | 15.00"></textarea><label for="newTotal">Total of these selected items ($, optional)</label><input id="newTotal" type="text" inputmode="decimal" autocomplete="off" maxlength="30" placeholder="97.00"><small>No automatic guessing: two differently named items stay separate unless you align their labels.</small></section>
+</div>
+<section class="panel"><h2>3. Check, then compare</h2><label><input id="verified" type="checkbox">I checked the labels, signs, amounts and billing periods against the originals.</label><label><input id="recurring" type="checkbox">Both bills cover equivalent monthly periods and every compared difference will recur monthly.</label><small>The second option enables an illustrative 12-month projection. Leave it off for usage changes, partial cycles, deposits or one-time charges.</small><div class="actions"><button id="compare" type="button" class="primary">Compare verified items</button></div></section>
+</div>
+<div id="status" role="status" aria-live="polite"></div>
+<section id="results" class="panel out" hidden aria-labelledby="resultTitle"><h2 id="resultTitle">Your comparison</h2><div class="metrics"><div class="metric"><small>Older selected total</small><strong id="oldSum"></strong></div><div class="metric"><small>Newer selected total</small><strong id="newSum"></strong></div><div class="metric"><small>Net difference</small><strong id="delta"></strong></div></div><p id="reconciliation" class="notice"></p><p id="annual" class="muted"></p><div class="table-wrap"><table><thead><tr><th>Item / evidence</th><th>Older bill</th><th>Newer bill</th><th>Difference</th><th>What to review</th></tr></thead><tbody id="rows"></tbody></table></div><p class="muted">A missing item can be a renamed or moved charge. A missing credit increases this comparison, but does not prove an error. Zero is a real entered amount; a dash means that label was not supplied.</p><div class="actions"><button id="copy" type="button">Copy summary</button><button id="download" type="button">Save summary as text</button><button id="print" type="button">Print comparison</button></div><textarea id="copyFallback" class="copybox" readonly hidden aria-label="Summary for manual copying"></textarea></section>
+<details><summary>How matching and privacy work</summary><p>Labels match after trimming spaces and ignoring letter case. There is no fuzzy matching: rename corresponding labels yourself when necessary. Duplicate labels within one bill are rejected to avoid silently combining separate lines. Totals, subtotals and balances must be entered in the optional total boxes, not as item rows. Blank amounts, ambiguous number formats and malformed lines block the comparison.</p><p>Calculation uses integer cents. The selected-item difference is not a guaranteed saving. Inputs stay in memory until you clear the tool, reload or leave; this tool does not intentionally save documents to browser storage. Browser history or form-restoration features are outside this tool's control. The existing site counter can record a page visit, but receives no entered bill text or amounts.</p><p>For a file containing a PDF, copy the relevant text into these fields first. Image-only scans need separate transcription; this page does not perform OCR. Keep exported summaries private.</p></details>
+</main><footer><a href="/methodology.html">Methodology</a> · <a href="/privacy.html">Privacy</a> · <a href="/contact.html">Contact</a></footer>
+<!-- Privacy-isolated workspace: analytics.js is intentionally not loaded; only the existing page counter is allowed. -->
+<script src="/live-tracker.js?v=20260921-source" defer></script>
+<script id="bill-diff-engine">
+'use strict';
+globalThis.BillDiff = (() => {
+  const key = s => s.trim().replace(/\s+/g,' ').toLowerCase();
+  function cents(value) {
+    let s=String(value).trim(),negative=false;
+    if(/^\([^()]+\)$/.test(s)){negative=true;s=s.slice(1,-1).trim();}
+    if(s.startsWith('-')){if(negative)throw Error('Ambiguous negative amount');negative=true;s=s.slice(1).trim();}
+    s=s.replace(/^\$\s*/,'');
+    if(!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(s))throw Error('Use an amount such as 12.50 or -20.00');
+    const [whole,fraction='']=s.replace(/,/g,'').split('.');
+    const n=Number(whole)*100+Number(fraction.padEnd(2,'0'));
+    if(!Number.isSafeInteger(n)||n>100000000)throw Error('Amount exceeds the $1,000,000 item limit');
+    return negative?-n:n;
+  }
+  function parse(text,name) {
+    if(text.length>100000)throw Error(name+': text is too long');
+    const items=[],seen=new Set(),issues=[];
+    text.replace(/^\uFEFF/,'').split(/\r?\n/).forEach((line,i)=>{
+      if(!line.trim())return;
+      const parts=line.split('|');
+      if(parts.length!==2){issues.push(name+' line '+(i+1)+': use Label | amount');return;}
+      const label=parts[0].trim(),k=key(label);
+      if(!label||label.length>160){issues.push(name+' line '+(i+1)+': use a label of 1–160 characters');return;}
+      if(/^(?:(?:grand|sub|bill|statement|current|previous|new|old|remaining|prior)\s*)?(?:total|subtotal|balance)(?:\s+(?:due|amount|charges|forward|this month|forwarded))?$|^(?:amount|payment)\s+due$/.test(k)){issues.push(name+' line '+(i+1)+': put totals/balances in the optional total box, not among items');return;}
+      if(seen.has(k)){issues.push(name+' line '+(i+1)+': duplicate label. Give distinct lines distinct labels');return;}
+      try{const amount=cents(parts[1]);seen.add(k);items.push({label,key:k,cents:amount,line:i+1});}catch(e){issues.push(name+' line '+(i+1)+': '+e.message);}
+    });
+    if(items.length>150)issues.push(name+': limit is 150 items');
+    if(!items.length&&!issues.length)issues.push(name+': enter at least one item, including an explicit zero if appropriate');
+    if(issues.length)throw Error(issues.slice(0,12).join('\n'));
+    return items;
+  }
+  function compare(oldItems,newItems){
+    const oldMap=new Map(oldItems.map(x=>[x.key,x])),newMap=new Map(newItems.map(x=>[x.key,x]));
+    const rows=[...new Set([...oldMap.keys(),...newMap.keys()])].map(k=>{
+      const a=oldMap.get(k),b=newMap.get(k),difference=(b?b.cents:0)-(a?a.cents:0);
+      const status=!a?(b.cents<0?'New credit':'Newly listed'):!b?(a.cents<0?'Credit no longer listed':'No longer listed'):difference>0?'Cost increased':difference<0?'Cost decreased':'Unchanged';
+      return {label:(b||a).label,old:a||null,new:b||null,difference,status};
+    });
+    rows.sort((a,b)=>Math.abs(b.difference)-Math.abs(a.difference));
+    const before=oldItems.reduce((s,x)=>s+x.cents,0),after=newItems.reduce((s,x)=>s+x.cents,0);
+    return {rows,before,after,difference:after-before};
+  }
+  const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n/100);
+  return Object.freeze({cents,parse,compare,money});
+})();
+</script>
+<script id="bill-diff-ui">
+(()=>{'use strict';const $=id=>document.getElementById(id),E=BillDiff;let report='',generation=0;
+const notify=t=>{$('status').textContent=t;};
+function invalidate(){generation++;report='';$('results').hidden=true;$('copyFallback').hidden=true;$('verified').checked=false;notify('Inputs changed. Review the items again, then compare.');}
+for(const id of ['oldText','newText','oldTotal','newTotal'])$(id).addEventListener('input',invalidate);
+$('recurring').addEventListener('change',()=>{report='';$('results').hidden=true;$('copyFallback').hidden=true;});
+$('verified').addEventListener('change',()=>{if(!$('verified').checked){report='';$('results').hidden=true;}});
+for(const prefix of ['old','new'])$(prefix+'File').addEventListener('change',async()=>{const file=$(prefix+'File').files[0];if(!file)return;const token=++generation;try{if(!/\.txt$/i.test(file.name)||file.size>100000)throw Error('Open a UTF-8 .txt file no larger than 100 KB. PDFs and images are not supported here.');const text=await file.text();if(token!==generation)return;if(text.includes('\0')||text.startsWith('%PDF-'))throw Error('This is not a plain-text bill. Copy the relevant line items instead.');if($(prefix+'Text').value&&!confirm('Replace the text in this bill panel?'))return;$(prefix+'Text').value=text;invalidate();notify('Text loaded locally. Format and verify every item before comparing.');}catch(e){notify(e.message);}finally{$(prefix+'File').value='';}});
+$('sample').addEventListener('click',()=>{if(($('oldText').value||$('newText').value)&&!confirm('Replace current inputs with an illustrative example?'))return;generation++;$('oldText').value='Internet service | 70.00\nPromotion credit | -20.00\nEquipment | 10.00';$('newText').value='Internet service | 82.00\nEquipment | 15.00';$('oldTotal').value='60.00';$('newTotal').value='97.00';$('recurring').checked=false;invalidate();notify('Illustrative example only: a $12 service increase, a missing $20 credit and $5 more for equipment. Review and tick the verification box.');});
+$('clear').addEventListener('click',()=>{if(($('oldText').value||$('newText').value)&&!confirm('Clear all text, amounts and results on this page?'))return;generation++;for(const id of ['oldText','newText','oldTotal','newTotal','oldFile','newFile'])$(id).value='';$('verified').checked=false;$('recurring').checked=false;$('results').hidden=true;$('copyFallback').hidden=true;$('copyFallback').value='';$('rows').replaceChildren();report='';notify('Data cleared from this tool. Previously exported files are not deleted.');});
+$('compare').addEventListener('click',()=>{try{
+  if(!$('verified').checked)throw Error('Check the verification box after reviewing the original bills.');
+  const a=E.parse($('oldText').value,'Older bill'),b=E.parse($('newText').value,'Newer bill'),d=E.compare(a,b),warnings=[];
+  for(const [id,total,label] of [['oldTotal',d.before,'Older'],['newTotal',d.after,'Newer']])if($(id).value.trim()){const supplied=E.cents($(id).value);warnings.push(supplied===total?label+' selected total reconciles.':label+' total does NOT reconcile: entered total '+E.money(supplied)+' vs selected items '+E.money(total)+'. Difference '+E.money(supplied-total)+'. Check omitted items or double counting.');}
+  $('oldSum').textContent=E.money(d.before);$('newSum').textContent=E.money(d.after);$('delta').textContent=E.money(d.difference);
+  $('reconciliation').textContent=warnings.length?warnings.join(' '):'Selected-item totals only. No statement totals were entered, so full-bill reconciliation has not been checked.';
+  const mismatch=warnings.some(s=>s.includes('NOT reconcile'));
+  $('annual').textContent=$('recurring').checked&&!mismatch?'Illustrative 12-month impact if every difference persists unchanged: '+E.money(d.difference*12)+'. Not a forecast or guaranteed saving.':mismatch?'12-month projection withheld until your selected totals reconcile.':'No 12-month projection: monthly equivalence and recurrence have not been confirmed.';
+  $('rows').replaceChildren();const lines=[];
+  for(const row of d.rows){const tr=document.createElement('tr'),label=document.createElement('td');label.textContent=row.label;const evidence=document.createElement('small');evidence.textContent='Source lines: older '+(row.old?row.old.line:'not supplied')+' / newer '+(row.new?row.new.line:'not supplied');label.append(evidence);tr.append(label);for(const text of [row.old?E.money(row.old.cents):'—',row.new?E.money(row.new.cents):'—',E.money(row.difference),row.status]){const td=document.createElement('td');td.textContent=text;tr.append(td);}$('rows').append(tr);lines.push(row.label+': '+(row.old?E.money(row.old.cents):'not supplied')+' → '+(row.new?E.money(row.new.cents):'not supplied')+'; change '+E.money(row.difference)+'; '+row.status+'; '+evidence.textContent);}
+  report=['BillSavings AI — verified-text comparison','Created: '+new Date().toISOString(),'Selected totals: '+E.money(d.before)+' → '+E.money(d.after),'Net difference: '+E.money(d.difference),$('reconciliation').textContent,$('annual').textContent,'',...lines,'','Labels and amounts are user-supplied. This is not a determination that any fee is wrong.'].join('\n');
+  $('results').hidden=false;notify(mismatch?'Comparison ready, but the selected totals do not reconcile. Review the warning below.':'Comparison ready. Review the source lines and any renamed or missing items.');
+}catch(e){$('results').hidden=true;report='';notify(e.message);}});
+$('copy').addEventListener('click',async()=>{if(!report)return;try{await navigator.clipboard.writeText(report);notify('Summary copied. Keep any personal information private.');}catch{$('copyFallback').value=report;$('copyFallback').hidden=false;$('copyFallback').focus();$('copyFallback').select();notify('Automatic copying is unavailable. Copy the selected summary manually.');}});
+$('download').addEventListener('click',()=>{if(!report)return;const url=URL.createObjectURL(new Blob([report],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='bill-comparison.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);});
+$('print').addEventListener('click',()=>{if(report)window.print();});
+})();
+</script></body></html>

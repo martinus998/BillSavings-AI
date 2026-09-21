@@ -1,0 +1,19 @@
+name: Isolated Comparison Check
+on:
+  push:
+    branches: [main, feature/isolated-bill-diff-20260921]
+    paths: [bill-compare.html, sitemap-growth.xml, tests/isolated-comparison.test.cjs, .github/workflows/isolated-comparison-check.yml]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  compare-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify comparison math, limits and privacy boundary
+        run: node tests/isolated-comparison.test.cjs
