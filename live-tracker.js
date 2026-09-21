@@ -20,13 +20,30 @@
   const sessionId = getId(sessionStorage, 'bs_live_session_v1');
   let sentView = false;
 
+  function sourcePayload() {
+    let referrer_host = '';
+    try {
+      if (document.referrer) {
+        const u = new URL(document.referrer);
+        if (u.hostname && u.hostname !== location.hostname) referrer_host = u.hostname.toLowerCase();
+      }
+    } catch {}
+    const qs = new URLSearchParams(location.search);
+    return {
+      referrer_host,
+      utm_source: (qs.get('utm_source') || '').slice(0,120),
+      utm_medium: (qs.get('utm_medium') || '').slice(0,120),
+      utm_campaign: (qs.get('utm_campaign') || '').slice(0,160)
+    };
+  }
+
   async function ping(pageview = false) {
     if (document.visibilityState === 'hidden' && !pageview) return;
     try {
       await fetch(endpoint, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({site, visitor_id: visitorId, session_id: sessionId, path: location.pathname, pageview})
+        body: JSON.stringify({site, visitor_id: visitorId, session_id: sessionId, path: location.pathname, pageview, ...sourcePayload()})
       });
     } catch {}
   }
