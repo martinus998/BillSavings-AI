@@ -5,8 +5,8 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_o-RgVfTUjzfne4DC9QcGfQ_4QGg5CVr
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const LIVE_CHECKOUT = {
-  premium: 'https://buy.stripe.com/fZu6oG9lE65B2Pa9oi1sQ01',
-  family: 'https://buy.stripe.com/eVqbJ055o65B3Te8ke1sQ02'
+  premium: '/checkout.html?plan=premium',
+  family: '/checkout.html?plan=family'
 };
 
 let currentEntitlement = { plan: 'free', status: 'inactive', paid: false, current_period_end: null };
@@ -168,9 +168,7 @@ async function openLiveCheckout(plan) {
     return;
   }
 
-  const url = new URL(LIVE_CHECKOUT[normalized]);
-  url.searchParams.set('prefilled_email', user.email);
-  window.location.href = url.toString();
+  window.location.href = LIVE_CHECKOUT[normalized];
 }
 
 function attachLiveCheckoutRouting() {
