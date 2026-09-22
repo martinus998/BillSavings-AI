@@ -47,15 +47,6 @@
   document.head.appendChild(s);
 })();
 
-// Keep launch pricing visible and static on every device.
-(function () {
-  const plans = Array.from(document.querySelectorAll?.('#pricing .plan') || []);
-  const premium = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Premium');
-  const family = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
-  if (premium?.querySelector('.price')) premium.querySelector('.price').innerHTML = '$8.99 <span>/ month</span>';
-  if (family?.querySelector('.price')) family.querySelector('.price').innerHTML = '$13.99 <span>/ month</span>';
-})();
-
 // Conversion funnel events. No user-entered values are sent.
 (function () {
   if (window.BILLSAVINGS_AUTH_RETURN === true) return;
