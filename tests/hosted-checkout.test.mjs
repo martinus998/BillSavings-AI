@@ -72,7 +72,7 @@ async function openCheckout(options = {}) {
         authCalls.push('signInWithPassword'); activeUser = options.signedInUser ?? confirmed();
         return {data: {session: {user: activeUser}}, error: null};
       },
-      async getSession() {authCalls.push('getSession'); return {data: {session: activeUser ? {user: activeUser} : null}, error: null};},
+      async getSession() {authCalls.push('getSession'); return {data: {session: activeUser ? {user: activeUser, access_token: 'verified-access-token'} : null}, error: null};},
       async resetPasswordForEmail() {authCalls.push('resetPasswordForEmail'); return {data: {}, error: null};},
       async updateUser() {authCalls.push('updateUser'); return {data: {user: activeUser}, error: null};}
     },
@@ -109,7 +109,7 @@ async function openCheckout(options = {}) {
   };
 }
 
-test('a confirmed account opens only the existing selected Payment Link with its verified email', async () => {
+test('a confirmed account opens only an authenticated Stripe Checkout Session for the selected plan', async () => {
   for (const plan of ['premium', 'family']) {
     const x = await openCheckout({user: confirmed(), search: `?plan=${plan}&email=attacker%40example.invalid&user_id=attacker&redirect=https://attacker.invalid`});
     assert.equal(x.navigations.length, 0);
@@ -120,8 +120,12 @@ test('a confirmed account opens only the existing selected Payment Link with its
     assert.equal(target.origin, 'https://checkout.stripe.com');
     
     assert.deepEqual(x.claims, ['claim_billing_entitlement']);
-    assert.deepEqual(x.authCalls, ['getUser', 'getUser']);
-    assert.equal(x.requests.length, 0);
+    assert.deepEqual(x.authCalls, ['getUser', 'getUser', 'getSession']);
+    assert.equal(x.requests.length, 1);
+    assert.match(String(x.requests[0][0]), /\/functions\/v1\/billsavings-checkout$/);
+    const requestInit = x.requests[0][1];
+    assert.equal(requestInit.headers.Authorization, 'Bearer verified-access-token');
+    assert.deepEqual(JSON.parse(requestInit.body), {plan});
   }
 });
 
@@ -141,7 +145,11 @@ test('payment uses a fresh verified identity, not the previously displayed accou
   x.element('authEmail').value = 'forged@example.invalid';
   x.setUser({...confirmed('current@example.invalid'), id: 'current-owner'});
   await x.continue();
-  assert.equal(new URL(x.navigations[0]).searchParams.get('locked_prefilled_email'), 'current@example.invalid');
+  assert.equal(new URL(x.navigations[0]).origin, 'https://checkout.stripe.com');
+  const checkoutRequest = x.requests.find(([url]) => /\/functions\/v1\/billsavings-checkout$/.test(String(url)));
+  assert.ok(checkoutRequest);
+  assert.deepEqual(JSON.parse(checkoutRequest[1].body), {plan:'premium'});
+  assert.doesNotMatch(JSON.stringify(checkoutRequest), /forged@example\.invalid|old@example\.invalid|current@example\.invalid/);
   const expired = await openCheckout({user: confirmed()});
   expired.setGetUser(() => ({data: {user: confirmed()}, error: {message: 'AUTH_INTERNAL_DETAIL'}}));
   await expired.continue();
@@ -160,7 +168,7 @@ test('paid and unresolved existing subscriptions return to the account rather th
   }
 });
 
-test('canceled subscription can purchase again with the selected existing price link', async () => {
+test('canceled subscription can purchase again with a fresh checkout session', async () => {
   const x = await openCheckout({user: confirmed(), search: '?plan=family', entitlement: {plan: 'premium', status: 'canceled'}});
   await x.continue();
   const target = new URL(x.navigations[0]);
@@ -235,8 +243,9 @@ test('new signup creates a confirmed account server-side and proceeds directly t
   const x = await openCheckout();
   x.credentials();
   await x.submit();
-  assert.equal(x.requests.length, 1);
+  assert.equal(x.requests.length, 2);
   assert.match(String(x.requests[0][0]), /\/functions\/v1\/password-signup$/);
+  assert.match(String(x.requests[1][0]), /\/functions\/v1\/billsavings-checkout$/);
   assert.equal(x.authCalls.includes('signUp'), false);
   assert.equal(x.authCalls.includes('signInWithPassword'), true);
   assert.equal(x.navigations.length, 1);
@@ -250,7 +259,7 @@ test('confirmed password login proceeds without an extra email-link request', as
   await x.submit();
   assert.equal(x.authCalls.includes('signInWithPassword'), true);
   assert.equal(x.navigations.length, 1);
-  assert.equal(x.requests.length, 0);
+  assert.equal(x.requests.length, 1);
   assert.equal(x.element('authPassword').value, '');
   const preference = JSON.parse(x.storage.get('billsavings.purchase-plan'));
   assert.deepEqual(Object.keys(preference).sort(), ['expires', 'plan']);
