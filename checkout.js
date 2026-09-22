@@ -3,14 +3,11 @@ import {supabase, initialAuthReturn} from './account-session.js';
 import {createPasswordAuth} from './password-auth.js?v=20260918-simplelogin2';
 
 const $ = id => document.getElementById(id);
-const LINKS = {
-  premium: 'https://buy.stripe.com/fZu6oG9lE65B2Pa9oi1sQ01',
-  family: 'https://buy.stripe.com/eVqbJ055o65B3Te8ke1sQ02'
-};
+const CHECKOUT_ENDPOINT = 'https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/billsavings-checkout';
 const SIGNUP_ENDPOINT = 'https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/password-signup';
 const query = new URLSearchParams(location.search);
 const requestedPlan = query.get('plan');
-const plan = Object.hasOwn(LINKS, requestedPlan) ? requestedPlan : null;
+const plan = requestedPlan === 'premium' || requestedPlan === 'family' ? requestedPlan : null;
 let busy = false, generation = 0, recovering = initialAuthReturn.type === 'recovery';
 let callbackFailed = initialAuthReturn.failed;
 async function signInCompatibleLocal(email, password) {
@@ -135,10 +132,20 @@ async function continueToPayment() {
       location.assign('/start.html');
       return;
     }
-    const link = new URL(LINKS[plan]);
-    link.searchParams.set('locked_prefilled_email', user.email.trim().toLowerCase());
+    const {data: sessionData} = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) throw new Error('Missing session');
+    const checkoutResponse = await fetch(CHECKOUT_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', Authorization:'Bearer '+accessToken},
+      body: JSON.stringify({plan})
+    });
+    const checkoutPayload = await checkoutResponse.json().catch(()=>({}));
+    if (!checkoutResponse.ok || !/^https:\/\/checkout\.stripe\.com\//.test(String(checkoutPayload?.checkout_url||''))) {
+      throw new Error('Checkout unavailable');
+    }
     rememberPlan();
-    location.assign(link.href);
+    location.assign(checkoutPayload.checkout_url);
   } catch {
     if (version === generation) status('We could not check your account. Try again before making a payment.', true);
   } finally {
@@ -177,7 +184,7 @@ if (!plan) {
   status('Choose a plan to continue.', true);
 } else {
   $('selectedPlan').textContent = plan === 'family' ? 'Family' : 'Premium';
-  $('selectedPrice').textContent = plan === 'family' ? '$13.99' : '$8.99';
+  $('selectedPrice').textContent = plan === 'family' ? '$9.99' : '$4.99';
   rememberPlan();
   try {
     await refreshAccount();
