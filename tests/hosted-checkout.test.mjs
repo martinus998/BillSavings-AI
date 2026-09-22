@@ -9,10 +9,7 @@ const html = readFileSync(new URL('../checkout.html', import.meta.url), 'utf8');
 const authSource = readFileSync(new URL('../password-auth.js', import.meta.url), 'utf8');
 const {createPasswordAuth} = await import(`data:text/javascript;base64,${Buffer.from(authSource).toString('base64')}`);
 const confirmed = (email = 'Owner@Example.invalid') => ({id: 'verified-owner', email, email_confirmed_at: '2026-09-17T00:00:00Z'});
-const links = {
-  premium: 'https://buy.stripe.com/fZu6oG9lE65B2Pa9oi1sQ01',
-  family: 'https://buy.stripe.com/eVqbJ055o65B3Te8ke1sQ02'
-};
+const checkoutUrl = 'https://checkout.stripe.com/c/pay/cs_live_example';
 function deferred() {
   let resolve;
   const promise = new Promise(r => {resolve = r;});
@@ -75,7 +72,7 @@ async function openCheckout(options = {}) {
         authCalls.push('signInWithPassword'); activeUser = options.signedInUser ?? confirmed();
         return {data: {session: {user: activeUser}}, error: null};
       },
-      async getSession() {authCalls.push('getSession'); return {data: {session: activeUser ? {user: activeUser} : null}, error: null};},
+      async getSession() {authCalls.push('getSession'); return {data: {session: activeUser ? {user: activeUser, access_token: 'verified-access-token'} : null}, error: null};},
       async resetPasswordForEmail() {authCalls.push('resetPasswordForEmail'); return {data: {}, error: null};},
       async updateUser() {authCalls.push('updateUser'); return {data: {user: activeUser}, error: null};}
     },
@@ -92,9 +89,14 @@ async function openCheckout(options = {}) {
     fetch: async (...args) => {
       requests.push(args);
       const [url] = args;
-      assert.match(String(url), /\/functions\/v1\/password-signup$/);
-      if (options.signupFetchError) throw options.signupFetchError;
-      return {ok: options.signupOk ?? true, json: async () => options.signupPayload ?? {ok: true}};
+      if (/\/functions\/v1\/password-signup$/.test(String(url))) {
+        if (options.signupFetchError) throw options.signupFetchError;
+        return {ok: options.signupOk ?? true, json: async () => options.signupPayload ?? {ok: true}};
+      }
+      if (/\/functions\/v1\/billsavings-checkout$/.test(String(url))) {
+        return {ok:true, json:async()=>({ok:true, checkout_url:checkoutUrl})};
+      }
+      throw new Error('unexpected fetch');
     }
   });
   return {element, navigations, replaced, authCalls, claims, requests, storage, location,
@@ -107,7 +109,7 @@ async function openCheckout(options = {}) {
   };
 }
 
-test('a confirmed account opens only the existing selected Payment Link with its verified email', async () => {
+test('a confirmed account opens only an authenticated Stripe Checkout Session for the selected plan', async () => {
   for (const plan of ['premium', 'family']) {
     const x = await openCheckout({user: confirmed(), search: `?plan=${plan}&email=attacker%40example.invalid&user_id=attacker&redirect=https://attacker.invalid`});
     assert.equal(x.navigations.length, 0);
@@ -115,11 +117,15 @@ test('a confirmed account opens only the existing selected Payment Link with its
     await x.continue();
     assert.equal(x.navigations.length, 1);
     const target = new URL(x.navigations[0]);
-    assert.equal(target.origin + target.pathname, links[plan]);
-    assert.deepEqual([...target.searchParams.entries()], [['locked_prefilled_email', 'owner@example.invalid']]);
+    assert.equal(target.origin, 'https://checkout.stripe.com');
+    
     assert.deepEqual(x.claims, ['claim_billing_entitlement']);
-    assert.deepEqual(x.authCalls, ['getUser', 'getUser']);
-    assert.equal(x.requests.length, 0);
+    assert.deepEqual(x.authCalls, ['getUser', 'getUser', 'getSession']);
+    assert.equal(x.requests.length, 1);
+    assert.match(String(x.requests[0][0]), /\/functions\/v1\/billsavings-checkout$/);
+    const requestInit = x.requests[0][1];
+    assert.equal(requestInit.headers.Authorization, 'Bearer verified-access-token');
+    assert.deepEqual(JSON.parse(requestInit.body), {plan});
   }
 });
 
@@ -139,7 +145,11 @@ test('payment uses a fresh verified identity, not the previously displayed accou
   x.element('authEmail').value = 'forged@example.invalid';
   x.setUser({...confirmed('current@example.invalid'), id: 'current-owner'});
   await x.continue();
-  assert.equal(new URL(x.navigations[0]).searchParams.get('locked_prefilled_email'), 'current@example.invalid');
+  assert.equal(new URL(x.navigations[0]).origin, 'https://checkout.stripe.com');
+  const checkoutRequest = x.requests.find(([url]) => /\/functions\/v1\/billsavings-checkout$/.test(String(url)));
+  assert.ok(checkoutRequest);
+  assert.deepEqual(JSON.parse(checkoutRequest[1].body), {plan:'premium'});
+  assert.doesNotMatch(JSON.stringify(checkoutRequest), /forged@example\.invalid|old@example\.invalid|current@example\.invalid/);
   const expired = await openCheckout({user: confirmed()});
   expired.setGetUser(() => ({data: {user: confirmed()}, error: {message: 'AUTH_INTERNAL_DETAIL'}}));
   await expired.continue();
@@ -158,11 +168,11 @@ test('paid and unresolved existing subscriptions return to the account rather th
   }
 });
 
-test('canceled subscription can purchase again with the selected existing price link', async () => {
+test('canceled subscription can purchase again with a fresh checkout session', async () => {
   const x = await openCheckout({user: confirmed(), search: '?plan=family', entitlement: {plan: 'premium', status: 'canceled'}});
   await x.continue();
   const target = new URL(x.navigations[0]);
-  assert.equal(target.origin + target.pathname, links.family);
+  assert.equal(target.origin, 'https://checkout.stripe.com');
 });
 
 test('RPC failures and thrown Auth or RPC requests block payment and show a safe retry message', async () => {
@@ -214,7 +224,7 @@ test('expired auth callbacks cannot open checkout until a successful explicit pa
   x.authController.setMode('signin'); x.credentials();
   await x.submit();
   assert.equal(x.navigations.length, 1);
-  assert.equal(new URL(x.navigations[0]).origin, 'https://buy.stripe.com');
+  assert.equal(new URL(x.navigations[0]).origin, 'https://checkout.stripe.com');
 });
 
 test('password recovery cannot open payment before the password is saved', async () => {
@@ -233,12 +243,13 @@ test('new signup creates a confirmed account server-side and proceeds directly t
   const x = await openCheckout();
   x.credentials();
   await x.submit();
-  assert.equal(x.requests.length, 1);
+  assert.equal(x.requests.length, 2);
   assert.match(String(x.requests[0][0]), /\/functions\/v1\/password-signup$/);
+  assert.match(String(x.requests[1][0]), /\/functions\/v1\/billsavings-checkout$/);
   assert.equal(x.authCalls.includes('signUp'), false);
   assert.equal(x.authCalls.includes('signInWithPassword'), true);
   assert.equal(x.navigations.length, 1);
-  assert.equal(new URL(x.navigations[0]).origin, 'https://buy.stripe.com');
+  assert.equal(new URL(x.navigations[0]).origin, 'https://checkout.stripe.com');
   assert.equal(x.element('authPassword').value, '');
 });
 
@@ -248,7 +259,7 @@ test('confirmed password login proceeds without an extra email-link request', as
   await x.submit();
   assert.equal(x.authCalls.includes('signInWithPassword'), true);
   assert.equal(x.navigations.length, 1);
-  assert.equal(x.requests.length, 0);
+  assert.equal(x.requests.length, 1);
   assert.equal(x.element('authPassword').value, '');
   const preference = JSON.parse(x.storage.get('billsavings.purchase-plan'));
   assert.deepEqual(Object.keys(preference).sort(), ['expires', 'plan']);
