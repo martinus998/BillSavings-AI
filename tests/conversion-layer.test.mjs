@@ -18,7 +18,7 @@ test('homepage explains the live Premium action workflow', () => {
 test('start page copy stays aligned with Premium action features', () => {
   assert.match(help, /Fix-it call and email scripts/);
   assert.match(help, /Next-bill follow-up tracking/);
-  assert.match(help, /analytics\\.js\\?v=20260922-pricefix1/);
+  assert.match(help, /analytics\.js\?v=20260922-pricefix1/);
 });
 
 test('paid onboarding is guidance-only and follows the savings workflow', () => {
