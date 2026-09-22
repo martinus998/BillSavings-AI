@@ -18,7 +18,7 @@ test('homepage explains the live Premium action workflow', () => {
 test('start page copy stays aligned with Premium action features', () => {
   assert.match(help, /Fix-it call and email scripts/);
   assert.match(help, /Next-bill follow-up tracking/);
-  assert.match(help, /analytics\.js\?v=20260917-funnel2/);
+  assert.match(help, /analytics\\.js\\?v=20260922-pricefix1/);
 });
 
 test('paid onboarding is guidance-only and follows the savings workflow', () => {
@@ -29,6 +29,11 @@ test('paid onboarding is guidance-only and follows the savings workflow', () => 
   assert.match(onboarding, /Fix it/);
   assert.match(onboarding, /Track/);
   assert.doesNotMatch(onboarding, /stripe|checkout|claim_billing_entitlement|supabase/i);
+});
+
+test('analytics does not overwrite live plan prices', () => {
+  assert.doesNotMatch(analytics, /\$8\.99|\$13\.99/);
+  assert.doesNotMatch(analytics, /querySelector\('\.price'\).*innerHTML/);
 });
 
 test('funnel analytics measure actions without reading user content', () => {
