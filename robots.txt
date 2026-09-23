@@ -3,3 +3,5 @@ Allow: /
 
 Sitemap: https://billsavingsai.com/sitemap.xml
 Sitemap: https://billsavingsai.com/sitemap-growth.xml
+
+Sitemap: https://billsavingsai.com/feed.xml
