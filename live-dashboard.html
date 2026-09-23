@@ -31,7 +31,7 @@
 <div class="card listbox"><h3>Traffic sources today</h3><div id="sources" class="traffic-list"><div class="empty">No source data yet.</div></div></div>
 </section>
 <section class="card listbox" style="margin-top:14px"><h3>Recent visits today</h3><div id="recentVisits" class="traffic-list"><div class="empty">No visit data yet.</div></div></section>
-<div class="status" id="status">Updates automatically every 15 seconds. “Online now” means seen within roughly the last 90 seconds.</div>
+<div class="status" id="status">Updates automatically every 15 seconds. “Online now” means real user activity within roughly the last 60 seconds.</div>
 </main>
 <script>
 (() => {
@@ -88,7 +88,7 @@
       renderList('sources',d.sources||[]);
       renderRecent([...(d.recent||[]),...(s.recent||[])].sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))).slice(0,12));
       $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-      $('status').textContent='Live · auto-refresh every 15 seconds · online = active within ~90 seconds';
+      $('status').textContent='Live · auto-refresh every 15 seconds · online = recent user activity within ~60 seconds';
     }catch(e){$('updated').textContent='Connection error';$('status').textContent=e.message||'Could not refresh live data.';}
   }
   function openDashboard(){if(!key)return;$('login').classList.add('hide');$('dashboard').classList.remove('hide');void load();setInterval(load,15000);}
