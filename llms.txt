@@ -1,0 +1,35 @@
+# BillSavings AI
+> BillSavings AI helps consumers review recurring bills, identify changes and fees, compare costs, and prepare provider conversations.
+
+## Main tools
+- https://billsavingsai.com/ai-bill-checker.html
+- https://billsavingsai.com/free-bill-tools.html
+- https://billsavingsai.com/lower-monthly-bills.html
+- https://billsavingsai.com/find-hidden-fees.html
+
+## Negotiation tools
+- https://billsavingsai.com/bill-negotiation-script-generator.html
+- https://billsavingsai.com/internet-bill-negotiation-script.html
+- https://billsavingsai.com/phone-bill-negotiation-script.html
+- https://billsavingsai.com/cable-bill-negotiation-script.html
+- https://billsavingsai.com/bill-negotiation-fee-calculator.html
+
+## Dispute and fee tools
+- https://billsavingsai.com/billing-error-dispute-letter.html
+- https://billsavingsai.com/late-fee-waiver-request.html
+
+## Popular bill guides
+- https://billsavingsai.com/internet-bill-went-up.html
+- https://billsavingsai.com/phone-bill-suddenly-increased.html
+- https://billsavingsai.com/utility-bill-too-high.html
+- https://billsavingsai.com/electric-bill-suddenly-high.html
+- https://billsavingsai.com/water-bill-suddenly-high.html
+- https://billsavingsai.com/cable-bill-went-up.html
+- https://billsavingsai.com/subscription-savings.html
+
+## Methodology and editorial standards
+- https://billsavingsai.com/methodology.html
+- https://billsavingsai.com/editorial-policy.html
+
+## Important limitations
+BillSavings AI provides educational planning and communication tools. It does not guarantee a provider refund, fee waiver, discount, or lower rate.
