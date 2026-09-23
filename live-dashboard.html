@@ -36,6 +36,8 @@
 <script>
 (() => {
   const endpoint='https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/live-analytics/summary';
+  const safeRpc='https://bkyuyqicybqqifenhhux.supabase.co/rest/v1/rpc/safeorscam_live_summary';
+  const anon='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiYmt5dXlxaWN5YnFxaWZlbmhoaHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxOTgzMDcsImV4cCI6MjEwNDc3NDMwN30.YRRzzP0Fzed4_bwF2mGS1Ut92jDZJAMd-xyRF4Fs5ZM';
   const $=id=>document.getElementById(id);
   let key='';
   try{key=sessionStorage.getItem('bs_live_dashboard_key')||'';}catch{}
@@ -62,18 +64,29 @@
   async function load(){
     if(!key)return;
     try{
-      const res=await fetch(endpoint,{headers:{Authorization:'Bearer '+key},cache:'no-store'});
+      const [res,safeRes]=await Promise.all([
+        fetch(endpoint,{headers:{Authorization:'Bearer '+key},cache:'no-store'}),
+        fetch(safeRpc,{method:'POST',headers:{apikey:anon,Authorization:'Bearer '+anon,'Content-Type':'application/json'},body:JSON.stringify({p_token:key}),cache:'no-store'})
+      ]);
       if(!res.ok){if(res.status===401)throw new Error('Wrong dashboard key.');throw new Error('Live data unavailable.');}
-      const d=await res.json(), b=d.sites?.billsavings||{}, r=d.sites?.repaircostmatch||{}, s=d.sites?.safeorscamcheck||{}, t=d.total||{};
+      const d=await res.json(), b=d.sites?.billsavings||{}, r=d.sites?.repaircostmatch||{}, safe=await safeRes.json().catch(()=>({}));
+      if(safe?.error==='unauthorized')throw new Error('Wrong dashboard key.');
+      const s=safe?.ok?safe:{};
+      const t={
+        online_now:(d.total?.online_now||0)+(s.online_now||0),
+        visitors_today:(d.total?.visitors_today||0)+(s.visitors_today||0),
+        sessions_today:(d.total?.sessions_today||0)+(s.sessions_today||0),
+        pageviews_today:(d.total?.pageviews_today||0)+(s.pageviews_today||0)
+      };
       set('tOnline',t.online_now);set('tVisitors',t.visitors_today);set('tSessions',t.sessions_today);set('tViews',t.pageviews_today);
       set('bOnline',b.online_now);set('bVisitors',b.visitors_today);set('bSessions',b.sessions_today);set('bViews',b.pageviews_today);
       set('rOnline',r.online_now);set('rVisitors',r.visitors_today);set('rSessions',r.sessions_today);set('rViews',r.pageviews_today);
       set('sOnline',s.online_now);set('sVisitors',s.visitors_today);set('sSessions',s.sessions_today);set('sViews',s.pageviews_today);
       renderList('bPages',d.top_pages?.billsavings||[]);
       renderList('rPages',d.top_pages?.repaircostmatch||[]);
-      renderList('sPages',d.top_pages?.safeorscamcheck||[]);
+      renderList('sPages',s.top_pages||[]);
       renderList('sources',d.sources||[]);
-      renderRecent(d.recent||[]);
+      renderRecent([...(d.recent||[]),...(s.recent||[])].sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))).slice(0,12));
       $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
       $('status').textContent='Live · auto-refresh every 15 seconds · online = active within ~90 seconds';
     }catch(e){$('updated').textContent='Connection error';$('status').textContent=e.message||'Could not refresh live data.';}
