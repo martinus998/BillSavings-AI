@@ -2,6 +2,8 @@
 > BillSavings AI helps consumers review recurring bills, identify changes and fees, compare costs, and prepare provider conversations.
 
 ## Main tools
+- https://billsavingsai.com/bill-compare.html
+- https://billsavingsai.com/savings-follow-up.html
 - https://billsavingsai.com/ai-bill-checker.html
 - https://billsavingsai.com/free-bill-tools.html
 - https://billsavingsai.com/lower-monthly-bills.html
