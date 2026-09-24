@@ -1,86 +1,84 @@
-name: Notify IndexNow
+name: IndexNow
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
     paths:
       - "*.html"
-      - "*.xml"
-      - "robots.txt"
-      - "8b6f5df22c4cd56dcc6b093554a2f8bb.txt"
-      - ".github/workflows/indexnow.yml"
+      - "sitemap*.xml"
+      - "feed.xml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  notify:
+  notify-indexnow:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@v4
         with:
-          persist-credentials: false
-
-      - name: Wait for public key file
-        shell: bash
+          fetch-depth: 2
+      - name: Submit changed pages to IndexNow
+        env:
+          INDEXNOW_KEY: 9f4a62c18d3e47b8a6c1d250ef7934ab
+          SITE_HOST: billsavingsai.com
+          STRIP_HTML: "0"
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          set -euo pipefail
-          KEY="8b6f5df22c4cd56dcc6b093554a2f8bb"
-          URL="https://billsavingsai.com/${KEY}.txt"
-          for i in $(seq 1 18); do
-            BODY="$(curl -fsSL --max-time 15 "$URL" || true)"
-            if [ "$BODY" = "$KEY" ]; then
-              echo "IndexNow key is live."
-              exit 0
-            fi
-            echo "Waiting for deployment ($i/18)…"
-            sleep 10
-          done
-          echo "IndexNow key file is not live at $URL"
-          exit 1
+          python - <<'PY'
+          import json, os, subprocess, urllib.request
 
-      - name: Build IndexNow payload
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import json
-          import xml.etree.ElementTree as ET
+          host = os.environ["SITE_HOST"]
+          base = "https://" + host
+          key = os.environ["INDEXNOW_KEY"]
+          strip_html = os.environ.get("STRIP_HTML") == "1"
+          event = os.environ.get("EVENT_NAME", "")
+          before = os.environ.get("BEFORE_SHA", "")
+          after = os.environ.get("AFTER_SHA", "")
 
-          key = "8b6f5df22c4cd56dcc6b093554a2f8bb"
-          host = "billsavingsai.com"
-          ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+          files = []
+          if event == "workflow_dispatch" or not before or set(before) == {"0"}:
+              out = subprocess.check_output(["git","ls-files","*.html"], text=True)
+              files = out.splitlines()
+          else:
+              out = subprocess.check_output(["git","diff","--name-only",before,after], text=True)
+              files = [x for x in out.splitlines() if x.endswith(".html")]
+
           urls = []
-          for sitemap in ("sitemap.xml", "sitemap-growth.xml"):
-              root = ET.parse(sitemap).getroot()
-              urls.extend(n.text.strip() for n in root.findall("sm:url/sm:loc", ns) if n.text)
-          urls = list(dict.fromkeys(urls))
-          if not urls or len(urls) > 10000:
-              raise ValueError("Unexpected IndexNow URL count")
-          if any(not url.startswith(f"https://{host}/") for url in urls):
-              raise ValueError("Sitemap contains a URL outside the production domain")
+          for f in files:
+              if "/" in f:
+                  continue
+              if f == "index.html":
+                  url = base + "/"
+              elif strip_html:
+                  url = base + "/" + f[:-5]
+              else:
+                  url = base + "/" + f
+              if url not in urls:
+                  urls.append(url)
+
+          if not urls:
+              urls = [base + "/"]
+
           payload = {
               "host": host,
               "key": key,
-              "keyLocation": f"https://{host}/{key}.txt",
-              "urlList": urls,
+              "keyLocation": f"{base}/{key}.txt",
+              "urlList": urls[:10000],
           }
-          with open("indexnow.json", "w", encoding="utf-8") as f:
-              json.dump(payload, f)
-          print(f"Prepared {len(payload['urlList'])} URLs for IndexNow")
+          req = urllib.request.Request(
+              "https://api.indexnow.org/IndexNow",
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type":"application/json; charset=utf-8"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  print("IndexNow status:", r.status, "URLs:", len(payload["urlList"]))
+          except Exception as e:
+              print("IndexNow submission failed:", e)
+              raise
           PY
-
-      - name: Submit sitemap URLs to IndexNow
-        shell: bash
-        run: |
-          set -euo pipefail
-          CODE="$(curl -sS -o indexnow-response.txt -w '%{http_code}' \
-            -H 'Content-Type: application/json; charset=utf-8' \
-            --data-binary @indexnow.json \
-            https://api.indexnow.org/indexnow)"
-          echo "IndexNow HTTP status: $CODE"
-          cat indexnow-response.txt || true
-          if [ "$CODE" != "200" ] && [ "$CODE" != "202" ]; then
-            exit 1
-          fi
