@@ -88,7 +88,7 @@
       renderList('sources',d.sources||[]);
       renderRecent(d.recent||[]);
       $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-      $('status').textContent='USA only · known bots excluded · auto-refresh every 15 seconds · online = recent user activity within ~60 seconds';
+      $('status').textContent='Known bots excluded · auto-refresh every 15 seconds · online = recent user activity within ~60 seconds';
     }catch(e){$('updated').textContent='Connection error';$('status').textContent=e.message||'Could not refresh live data.';}
   }
   function openDashboard(){if(!key)return;$('login').classList.add('hide');$('dashboard').classList.remove('hide');void load();setInterval(load,15000);}
