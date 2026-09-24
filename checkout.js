@@ -1,4 +1,4 @@
-import './live-tracker.js?v=20260917-live1';
+import './live-tracker.js?v=20260924-funnel1';
 import {supabase, initialAuthReturn} from './account-session.js';
 import {createPasswordAuth} from './password-auth.js?v=20260918-simplelogin2';
 
