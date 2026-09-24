@@ -39,6 +39,22 @@
     };
   }
 
+  window.bsLiveEvent = async function(event) {
+    try {
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          site,
+          visitor_id: visitorId,
+          session_id: sessionId,
+          path: location.pathname,
+          event
+        })
+      });
+    } catch {}
+  };
+
   async function ping(pageview = false) {
     if (document.visibilityState === 'hidden' && !pageview) return;
     if (!pageview && Date.now() - lastActivity > 60_000) return;
