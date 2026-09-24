@@ -55,6 +55,13 @@
   const send = (name, params = {}) => {
     const safe = { ...params, page_path: window.location?.pathname || '' };
     try { window.gtag('event', name, safe); } catch {}
+    const map = {
+      bs_pricing_view:'pricing_view',
+      bs_plan_select:'plan_select',
+      bs_upload_start:'tool_start',
+      bs_analysis_start:'tool_start'
+    };
+    if (map[name] && typeof window.bsLiveEvent === 'function') void window.bsLiveEvent(map[name]);
   };
 
   const once = (key, fn) => {
