@@ -42,7 +42,7 @@
   if (currentPath === '/live-dashboard.html') return;
   try { if (localStorage.getItem('billsavings_owner_device') === '1') return; } catch {}
   const s = document.createElement('script');
-  s.src = '/live-tracker.js?v=20260917-live1';
+  s.src = '/live-tracker.js?v=20260924-funnel1';
   s.defer = true;
   document.head.appendChild(s);
 })();
