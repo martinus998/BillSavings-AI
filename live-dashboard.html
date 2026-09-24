@@ -24,6 +24,14 @@
 <div class="card site"><h2>RepairCostMatch</h2><div class="rows"><div class="mini"><b id="rOnline">0</b><span>Online now</span></div><div class="mini"><b id="rVisitors">0</b><span>Visitors today</span></div><div class="mini"><b id="rSessions">0</b><span>Sessions today</span></div><div class="mini"><b id="rViews">0</b><span>Page views today</span></div></div></div>
 <div class="card site"><h2>SafeOrScamCheck</h2><div class="rows"><div class="mini"><b id="sOnline">0</b><span>Online now</span></div><div class="mini"><b id="sVisitors">0</b><span>Visitors today</span></div><div class="mini"><b id="sSessions">0</b><span>Sessions today</span></div><div class="mini"><b id="sViews">0</b><span>Page views today</span></div></div></div>
 </section>
+<section class="card listbox" style="margin-top:14px">
+  <h3>Conversion funnel · USA today</h3>
+  <div class="traffic-list">
+    <div class="traffic-row"><span>BillSavings · tool/pricing → checkout</span><b id="bFunnel">0 → 0</b></div>
+    <div class="traffic-row"><span>RepairCostMatch · repair check → checkout</span><b id="rFunnel">0 → 0</b></div>
+    <div class="traffic-row"><span>SafeOrScamCheck · check → checkout</span><b id="sFunnel">0 → 0</b></div>
+  </div>
+</section>
 <section class="traffic-extra">
 <div class="card listbox"><h3>BillSavings · top pages today</h3><div id="bPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
 <div class="card listbox"><h3>RepairCostMatch · top pages today</h3><div id="rPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
@@ -70,6 +78,10 @@
       set('bOnline',b.online_now);set('bVisitors',b.visitors_today);set('bSessions',b.sessions_today);set('bViews',b.pageviews_today);
       set('rOnline',r.online_now);set('rVisitors',r.visitors_today);set('rSessions',r.sessions_today);set('rViews',r.pageviews_today);
       set('sOnline',sc.online_now);set('sVisitors',sc.visitors_today);set('sSessions',sc.sessions_today);set('sViews',sc.pageviews_today);
+      const bf=d.funnel?.billsavings||{}, rf=d.funnel?.repaircostmatch||{}, sf=d.funnel?.safeorscamcheck||{};
+      $('bFunnel').textContent=String(Math.max(bf.tool_start||0,bf.pricing_view||0,bf.plan_select||0))+' → '+String(bf.checkout_start||0);
+      $('rFunnel').textContent=String(rf.tool_start||0)+' → '+String(rf.checkout_start||0);
+      $('sFunnel').textContent=String(sf.tool_start||0)+' → '+String(sf.checkout_start||0);
       renderList('bPages',d.top_pages?.billsavings||[]);
       renderList('rPages',d.top_pages?.repaircostmatch||[]);
       renderList('sPages',d.top_pages?.safeorscamcheck||[]);
