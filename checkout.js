@@ -145,6 +145,7 @@ async function continueToPayment() {
       throw new Error('Checkout unavailable');
     }
     rememberPlan();
+    if (typeof window.bsLiveEvent === 'function') await window.bsLiveEvent('checkout_start');
     location.assign(checkoutPayload.checkout_url);
   } catch {
     if (version === generation) status('We could not check your account. Try again before making a payment.', true);
