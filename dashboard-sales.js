@@ -15,11 +15,12 @@
       if(!r.ok)return;
       const d=await r.json();
       const repair=rr.ok?await rr.json().catch(()=>({})):{};
-      const b=d.sales?.billsavings||{}, s=d.sales?.safeorscamcheck||{}, rp=repair?.ok?repair:{};
+      const b=d.sales?.billsavings||{}, s=d.sales?.safeorscamcheck||{}, a=d.sales?.autoratefinder||{}, rp=repair?.ok?repair:{};
       if($('bSales'))$('bSales').textContent=String(b.purchases_today||0)+' paid · '+money(b.gross_cents_today);
       if($('rSales'))$('rSales').textContent=String(rp.purchases_today||0)+' paid · '+money(rp.gross_cents_today);
       if($('sSales'))$('sSales').textContent=String(s.purchases_today||0)+' paid · '+money(s.gross_cents_today);
-      if($('tSales'))$('tSales').textContent=String((b.purchases_today||0)+(rp.purchases_today||0)+(s.purchases_today||0))+' paid · '+money((b.gross_cents_today||0)+(rp.gross_cents_today||0)+(s.gross_cents_today||0));
+      if($('aSales'))$('aSales').textContent=String(a.purchases_today||0)+' paid · '+money(a.gross_cents_today);
+      if($('tSales'))$('tSales').textContent=String((b.purchases_today||0)+(rp.purchases_today||0)+(s.purchases_today||0)+(a.purchases_today||0))+' paid · '+money((b.gross_cents_today||0)+(rp.gross_cents_today||0)+(s.gross_cents_today||0)+(a.gross_cents_today||0));
     }catch{}
   }
   window.addEventListener('load',()=>{void loadSales();setInterval(loadSales,15000);},{once:true});
