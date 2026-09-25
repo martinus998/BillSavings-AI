@@ -12,7 +12,7 @@
 <body>
 <div class="login" id="login"><h1>Private dashboard</h1><p style="color:#9ab8d4">Enter your private dashboard key.</p><input id="key" type="password" autocomplete="off"><button id="open">Open dashboard</button><p id="loginStatus" style="color:#ffb4b4"></p></div>
 <main class="wrap hide" id="dashboard">
-<div class="top"><div><h1>Live traffic</h1><p>BillSavings AI + RepairCostMatch + SafeOrScamCheck · live traffic</p></div><div class="pill" id="updated">Connecting…</div></div>
+<div class="top"><div><h1>Live traffic</h1><p>BillSavings AI + RepairCostMatch + SafeOrScamCheck + AutoRateFinder · live traffic</p></div><div class="pill" id="updated">Connecting…</div></div>
 <section class="grid">
 <div class="card online"><div class="label">Online now</div><div class="value" id="tOnline">0</div></div>
 <div class="card"><div class="label">Visitors today</div><div class="value" id="tVisitors">0</div></div>
@@ -23,6 +23,7 @@
 <div class="card site"><h2>BillSavings AI</h2><div class="rows"><div class="mini"><b id="bOnline">0</b><span>Online now</span></div><div class="mini"><b id="bVisitors">0</b><span>Visitors today</span></div><div class="mini"><b id="bSessions">0</b><span>Sessions today</span></div><div class="mini"><b id="bViews">0</b><span>Page views today</span></div></div></div>
 <div class="card site"><h2>RepairCostMatch</h2><div class="rows"><div class="mini"><b id="rOnline">0</b><span>Online now</span></div><div class="mini"><b id="rVisitors">0</b><span>Visitors today</span></div><div class="mini"><b id="rSessions">0</b><span>Sessions today</span></div><div class="mini"><b id="rViews">0</b><span>Page views today</span></div></div></div>
 <div class="card site"><h2>SafeOrScamCheck</h2><div class="rows"><div class="mini"><b id="sOnline">0</b><span>Online now</span></div><div class="mini"><b id="sVisitors">0</b><span>Visitors today</span></div><div class="mini"><b id="sSessions">0</b><span>Sessions today</span></div><div class="mini"><b id="sViews">0</b><span>Page views today</span></div></div></div>
+<div class="card site"><h2>AutoRateFinder</h2><div class="rows"><div class="mini"><b id="aOnline">0</b><span>Online now</span></div><div class="mini"><b id="aVisitors">0</b><span>Visitors today</span></div><div class="mini"><b id="aSessions">0</b><span>Sessions today</span></div><div class="mini"><b id="aViews">0</b><span>Page views today</span></div></div></div>
 </section>
 <section class="card listbox" style="margin-top:14px">
   <h3>Conversion funnel · USA today</h3>
@@ -30,15 +31,17 @@
     <div class="traffic-row"><span>BillSavings · tool/pricing → checkout</span><b id="bFunnel">0 → 0</b></div>
     <div class="traffic-row"><span>RepairCostMatch · repair check → checkout</span><b id="rFunnel">0 → 0</b></div>
     <div class="traffic-row"><span>SafeOrScamCheck · check → checkout</span><b id="sFunnel">0 → 0</b></div>
+    <div class="traffic-row"><span>AutoRateFinder · quote review → checkout</span><b id="aFunnel">0 → 0</b></div>
   </div>
 </section>
 <section class="traffic-extra">
 <div class="card listbox"><h3>BillSavings · top pages today</h3><div id="bPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
 <div class="card listbox"><h3>RepairCostMatch · top pages today</h3><div id="rPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
 <div class="card listbox"><h3>SafeOrScamCheck · top pages today</h3><div id="sPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
+<div class="card listbox"><h3>AutoRateFinder · top pages today</h3><div id="aPages" class="traffic-list"><div class="empty">No page data yet.</div></div></div>
 <div class="card listbox"><h3>Traffic sources today</h3><div id="sources" class="traffic-list"><div class="empty">No source data yet.</div></div></div>
 </section>
-<section class="card listbox" style="margin-top:14px"><h3>Paid purchases today</h3><div class="traffic-list"><div class="traffic-row"><span>BillSavings AI</span><b id="bSales">0 paid · $0.00</b></div><div class="traffic-row"><span>RepairCostMatch</span><b id="rSales">0 paid · $0.00</b></div><div class="traffic-row"><span>SafeOrScamCheck</span><b id="sSales">0 paid · $0.00</b></div><div class="traffic-row"><span>Total shown</span><b id="tSales">0 paid · $0.00</b></div></div></section><section class="card listbox" style="margin-top:14px"><h3>Recent visits today</h3><div id="recentVisits" class="traffic-list"><div class="empty">No visit data yet.</div></div></section>
+<section class="card listbox" style="margin-top:14px"><h3>Paid purchases today</h3><div class="traffic-list"><div class="traffic-row"><span>BillSavings AI</span><b id="bSales">0 paid · $0.00</b></div><div class="traffic-row"><span>RepairCostMatch</span><b id="rSales">0 paid · $0.00</b></div><div class="traffic-row"><span>SafeOrScamCheck</span><b id="sSales">0 paid · $0.00</b></div><div class="traffic-row"><span>AutoRateFinder</span><b id="aSales">0 paid · $0.00</b></div><div class="traffic-row"><span>Total shown</span><b id="tSales">0 paid · $0.00</b></div></div></section><section class="card listbox" style="margin-top:14px"><h3>Recent visits today</h3><div id="recentVisits" class="traffic-list"><div class="empty">No visit data yet.</div></div></section>
 <div class="status" id="status">Updates automatically every 15 seconds. “Online now” means real user activity within roughly the last 60 seconds.</div>
 </main>
 <script>
@@ -61,7 +64,7 @@
     const rows=Array.isArray(items)?items:[];
     if(!rows.length){root.innerHTML='<div class="empty">No visit data yet.</div>';return;}
     root.innerHTML=rows.map(x=>{
-      const site=x.site==='repaircostmatch'?'RepairCostMatch':x.site==='safeorscamcheck'?'SafeOrScamCheck':'BillSavings';
+      const site=x.site==='repaircostmatch'?'RepairCostMatch':x.site==='safeorscamcheck'?'SafeOrScamCheck':x.site==='autoratefinder'?'AutoRateFinder':'BillSavings';
       const time=x.created_at?new Date(x.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
       const label=site+' · '+(x.path||'/')+' · '+(x.source||'Direct');
       return '<div class="traffic-row"><span title="'+label.replace(/"/g,'&quot;')+'">'+label+'</span><b>'+time+'</b></div>';
@@ -73,18 +76,21 @@
       const res=await fetch(endpoint,{headers:{Authorization:'Bearer '+key},cache:'no-store'});
       if(!res.ok){if(res.status===401)throw new Error('Wrong dashboard key.');throw new Error('Live data unavailable.');}
       const d=await res.json();
-      const b=d.sites?.billsavings||{}, r=d.sites?.repaircostmatch||{}, sc=d.sites?.safeorscamcheck||{}, t=d.total||{};
+      const b=d.sites?.billsavings||{}, r=d.sites?.repaircostmatch||{}, sc=d.sites?.safeorscamcheck||{}, a=d.sites?.autoratefinder||{}, t=d.total||{};
       set('tOnline',t.online_now);set('tVisitors',t.visitors_today);set('tSessions',t.sessions_today);set('tViews',t.pageviews_today);
       set('bOnline',b.online_now);set('bVisitors',b.visitors_today);set('bSessions',b.sessions_today);set('bViews',b.pageviews_today);
       set('rOnline',r.online_now);set('rVisitors',r.visitors_today);set('rSessions',r.sessions_today);set('rViews',r.pageviews_today);
       set('sOnline',sc.online_now);set('sVisitors',sc.visitors_today);set('sSessions',sc.sessions_today);set('sViews',sc.pageviews_today);
-      const bf=d.funnel?.billsavings||{}, rf=d.funnel?.repaircostmatch||{}, sf=d.funnel?.safeorscamcheck||{};
+      set('aOnline',a.online_now);set('aVisitors',a.visitors_today);set('aSessions',a.sessions_today);set('aViews',a.pageviews_today);
+      const bf=d.funnel?.billsavings||{}, rf=d.funnel?.repaircostmatch||{}, sf=d.funnel?.safeorscamcheck||{}, af=d.funnel?.autoratefinder||{};
       $('bFunnel').textContent=String(Math.max(bf.tool_start||0,bf.pricing_view||0,bf.plan_select||0))+' → '+String(bf.checkout_start||0);
       $('rFunnel').textContent=String(rf.tool_start||0)+' → '+String(rf.checkout_start||0);
       $('sFunnel').textContent=String(sf.tool_start||0)+' → '+String(sf.checkout_start||0);
+      $('aFunnel').textContent=String(af.tool_start||0)+' → '+String(af.checkout_start||0);
       renderList('bPages',d.top_pages?.billsavings||[]);
       renderList('rPages',d.top_pages?.repaircostmatch||[]);
       renderList('sPages',d.top_pages?.safeorscamcheck||[]);
+      renderList('aPages',d.top_pages?.autoratefinder||[]);
       renderList('sources',d.sources||[]);
       renderRecent(d.recent||[]);
       $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
