@@ -13,6 +13,13 @@
     };
     alignCopy();
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', alignCopy, { once: true });
+    // Acceptance information only; existing buttons still use Stripe checkout.
+    if (!document.querySelector('script[data-fast-checkout-labels]')) {
+      const wallets = document.createElement('script');
+      wallets.src = '/fast-checkout-labels.js?v=20260925-wallets1';
+      wallets.dataset.fastCheckoutLabels = '1';
+      document.head.append(wallets);
+    }
   };
   document.head.append(source);
 })();
