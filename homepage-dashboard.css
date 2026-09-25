@@ -427,3 +427,94 @@ body.dashboard-home .foot{
   body.dashboard-home .item .time{display:none!important}
   body.dashboard-home .trustbar{margin-top:3px!important}
 }
+
+/* 2026-09-25: use the existing BillSavings logo as the homepage backdrop.
+   Presentation only. This scope excludes sign-in, checkout and account pages. */
+body.dashboard-home{
+  background:#05080d!important;
+  min-height:100vh;
+  position:relative;
+  isolation:isolate;
+}
+body.dashboard-home::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:url("/logo.svg");
+  background-repeat:no-repeat;
+  background-size:1120px 1120px;
+  background-position:calc(50% - 180px) -170px;
+  opacity:.44!important;
+  filter:contrast(1.4);
+  mix-blend-mode:screen;
+  -webkit-mask-image:linear-gradient(#000 0%,#000 75%,transparent 100%);
+  mask-image:linear-gradient(#000 0%,#000 75%,transparent 100%);
+}
+body.dashboard-home::after,
+body.dashboard-home .hero::before{display:none!important}
+body.dashboard-home .wrap{position:relative;z-index:0}
+body.dashboard-home .hero{
+  background:rgba(5,8,13,.18)!important;
+  border-color:rgba(166,191,215,.26)!important;
+}
+body.dashboard-home .nav,
+body.dashboard-home .live-status,
+body.dashboard-home .trustbar{background:rgba(6,10,16,.78)!important}
+body.dashboard-home .hero-main .left h1{
+  text-shadow:0 2px 16px rgba(0,0,0,.65);
+}
+body.dashboard-home .hero-main .left p{
+  color:#d5dfeb!important;
+  text-shadow:0 1px 5px #05080d;
+}
+body.dashboard-home .hero-main .left .grad{
+  background-image:linear-gradient(90deg,#f4faff,#a9ddff 55%,#85b4ff);
+  text-shadow:none;
+}
+body.dashboard-home .dashboard{
+  background:rgba(8,14,22,.88)!important;
+}
+body.dashboard-home .box,
+body.dashboard-home .fcard,
+body.dashboard-home .banner,
+body.dashboard-home .seo-links,
+body.dashboard-home .impact-strip,
+body.dashboard-home #keep-more-value,
+body.dashboard-home #premium-action-value{
+  background:rgba(8,14,22,.9)!important;
+}
+body.dashboard-home .card,
+body.dashboard-home .activity,
+body.dashboard-home .break,
+body.dashboard-home .step,
+body.dashboard-home .impact-card,
+body.dashboard-home .plan,
+body.dashboard-home .faqItem{
+  background:rgba(12,21,32,.92)!important;
+}
+body.dashboard-home .card.green{background:rgba(9,46,44,.92)!important}
+body.dashboard-home .card.purple{background:rgba(32,30,63,.92)!important}
+body.dashboard-home .fact,
+body.dashboard-home .conversion-proof{
+  background:rgba(6,12,19,.8)!important;
+}
+@media(max-width:980px){
+  body.dashboard-home::before{
+    background-size:960px 960px;
+    background-position:center -100px;
+  }
+}
+@media(max-width:720px){
+  body.dashboard-home::before{
+    background-size:min(650px,165vw) min(650px,165vw);
+    background-position:center -35px;
+    opacity:.44!important;
+  }
+  body.dashboard-home .hero{background:rgba(5,8,13,.12)!important}
+  body.dashboard-home .nav{background:rgba(6,10,16,.92)!important}
+}
+@media print{
+  body.dashboard-home::before{display:none!important}
+}
