@@ -69,7 +69,8 @@ html{background-color:#020b17}
 @media (max-width:900px){
   html,body{background-color:#020b17}
   body{min-height:100vh;background:linear-gradient(180deg,#020812 0%,#081521 46%,#08111d 100%)}
-  body:before,body:after{display:none!important}
+  /* Keep the homepage logo backdrop visible; retain the guard elsewhere. */
+  body:not(.dashboard-home):before,body:after{display:none!important}
   .hero:before,.moneyTheme:before{display:none!important}
   .left:before{filter:none!important}
   .hero,.dashboard,.fcard,.box,.intel-card,.plan.pop,.top-savings{box-shadow:0 8px 24px rgba(0,0,0,.20)!important}
