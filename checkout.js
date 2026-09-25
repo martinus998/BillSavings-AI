@@ -1,200 +1,72 @@
-import './live-tracker.js?v=20260924-funnel1';
-import {supabase, initialAuthReturn} from './account-session.js';
-import {createPasswordAuth} from './password-auth.js?v=20260918-simplelogin2';
-
-const $ = id => document.getElementById(id);
-const CHECKOUT_ENDPOINT = 'https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/billsavings-checkout';
-const SIGNUP_ENDPOINT = 'https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/password-signup';
-const query = new URLSearchParams(location.search);
-const requestedPlan = query.get('plan');
-const plan = requestedPlan === 'premium' || requestedPlan === 'family' ? requestedPlan : null;
-let busy = false, generation = 0, recovering = initialAuthReturn.type === 'recovery';
-let callbackFailed = initialAuthReturn.failed;
-async function signInCompatibleLocal(email, password) {
-  const direct = await supabase.auth.signInWithPassword({email, password});
-  if (!direct?.error && direct?.data?.session?.user?.id) return direct;
-  const code = String(direct?.error?.code || '');
-  if (code && !['invalid_credentials','weak_password'].includes(code)) return direct;
-  return supabase.auth.signInWithPassword({email, password: password + '!Bs9'});
-}
-
-function status(message, error = false) {
-  $('checkoutStatus').textContent = message;
-  $('checkoutStatus').hidden = !message;
-  $('checkoutStatus').classList.toggle('err', error);
-}
-function rememberPlan() {
-  if (!plan) return;
-  try { localStorage.setItem('billsavings.purchase-plan', JSON.stringify({plan, expires: Date.now() + 3600000})); } catch {}
-}
-function forgetPlan() {
-  try { localStorage.removeItem('billsavings.purchase-plan'); } catch {}
-}
-const auth = createPasswordAuth({supabase, root: $('checkoutAuth'), initialMode: 'signup',
-  requirePasswordConfirmation: false,
-  redirectTo: 'https://billsavingsai.com/start.html?access=ready',
-  onStatus: (message, kind) => { rememberPlan(); status(message, kind === 'error'); },
-  onAuthenticated: async () => { callbackFailed = false; recovering = false; await refreshAccount(); await continueToPayment(); },
-  onRecovery: () => { recovering = true; $('checkoutAuth').hidden = false; $('accountReady').hidden = true; }
-});
-
-$('authForm').addEventListener('submit', async (event) => {
-  if (auth.mode !== 'signup') return;
-  event.preventDefault();
-  if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-  if (busy || auth.busy) return;
-
-  const email = $('authEmail').value.trim();
-  const password = $('authPassword').value;
-  if (!/^\S+@\S+\.\S+$/.test(email)) { status('Enter a valid email address.', true); return; }
-  const strong = password.length >= 10 && /\p{L}/u.test(password) && /\p{Nd}/u.test(password);
-  if (!strong) { status('Use at least 10 characters with at least one letter and one number.', true); return; }
-
-  busy = true;
-  auth.setBusy(true);
-  status('Creating your account…');
-  try {
-    const response = await fetch(SIGNUP_ENDPOINT, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, password})
-    });
-    let payload = {};
-    try { payload = await response.json(); } catch {}
-    if (!response.ok) {
-      const messages = {
-        invalid_email: 'Enter a valid email address.',
-        invalid_password: 'Use at least 10 characters with at least one letter and one number.',
-        too_many_attempts: 'Too many attempts. Wait a little and try again.'
-      };
-      throw new Error(messages[payload?.error] || 'Could not create the account. Please try again.');
-    }
-
-    const {data, error} = await signInCompatibleLocal(email, password);
-    if (error || !data?.session?.user?.id) {
-      busy = false;
-      auth.setBusy(false);
-      auth.setMode('signin');
-      $('authEmail').value = email;
-      status('This email may already have an account. Sign in with your password or use Reset password.', true);
-      return;
-    }
-    status('Account created. Opening secure payment…');
-    callbackFailed = false;
-    recovering = false;
-    await refreshAccount();
-    busy = false;
-    auth.setBusy(false);
-    await continueToPayment();
-  } catch (error) {
-    status(error?.message || 'Could not create the account. Please try again.', true);
-  } finally {
-    $('authPassword').value = '';
-    busy = false;
-    auth.setBusy(false);
+// Choose a plan -> Stripe. No registration form is shown before payment.
+(() => {
+  'use strict';
+  const endpoint = 'https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/billsavings-checkout';
+  const query = new URLSearchParams(location.search);
+  const plan = query.get('plan');
+  const status = document.getElementById('checkoutStatus');
+  const retry = document.getElementById('checkoutRetry');
+  const manual = document.getElementById('checkoutContinue');
+  let busy = false;
+  const message = text => { status.textContent = text; };
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (hash.has('access_token') || hash.has('refresh_token') || hash.has('error') || hash.has('error_code') || query.has('session_id')) {
+    const target = new URL('/start.html', location.origin);
+    if (query.has('session_id')) { target.searchParams.set('checkout', 'return'); target.searchParams.set('session_id', query.get('session_id')); }
+    else target.searchParams.set('access', 'ready');
+    target.hash = location.hash;
+    location.replace(target.href);
+    return;
   }
-}, true);
-
-async function refreshAccount() {
-  const version = ++generation;
-  const {data, error} = await supabase.auth.getUser();
-  if (version !== generation) return;
-  const user = !error && data?.user?.email_confirmed_at && !data.user.is_anonymous ? data.user : null;
-  $('checkoutAuth').hidden = !!user && !recovering && !callbackFailed;
-  $('accountReady').hidden = !user || recovering || callbackFailed;
-  $('checkoutEmail').textContent = user?.email || '';
-  return user;
-}
-
-async function continueToPayment() {
-  if (busy || !plan || recovering || callbackFailed) return;
-  busy = true;
-  const version = generation;
-  $('continuePayment').disabled = true;
-  $('changeAccount').disabled = true;
-  status('Opening secure payment…');
-  try {
-    const {data, error} = await supabase.auth.getUser();
-    if (version !== generation) return;
-    const user = data?.user;
-    if (error || !user?.id || !user.email_confirmed_at || user.is_anonymous || !user.email) {
-      $('checkoutAuth').hidden = false; $('accountReady').hidden = true;
-      status('Sign in to continue.', true);
-      return;
-    }
-    const entitlement = await supabase.rpc('claim_billing_entitlement');
-    if (version !== generation) return;
-    if (entitlement.error || typeof entitlement.data?.plan !== 'string' ||
-        typeof entitlement.data?.status !== 'string') throw new Error('Account check unavailable');
-    if (['premium', 'family'].includes(entitlement.data?.plan) &&
-        ['active', 'trialing', 'past_due', 'unpaid', 'incomplete', 'paused'].includes(entitlement.data?.status)) {
-      forgetPlan();
-      location.assign('/start.html');
-      return;
-    }
-    const {data: sessionData} = await supabase.auth.getSession();
-    const accessToken = sessionData?.session?.access_token;
-    if (!accessToken) throw new Error('Missing session');
-    const checkoutResponse = await fetch(CHECKOUT_ENDPOINT, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json', Authorization:'Bearer '+accessToken},
-      body: JSON.stringify({plan})
-    });
-    const checkoutPayload = await checkoutResponse.json().catch(()=>({}));
-    if (!checkoutResponse.ok || !/^https:\/\/checkout\.stripe\.com\//.test(String(checkoutPayload?.checkout_url||''))) {
-      throw new Error('Checkout unavailable');
-    }
-    rememberPlan();
-    if (typeof window.bsLiveEvent === 'function') await window.bsLiveEvent('checkout_start');
-    location.assign(checkoutPayload.checkout_url);
-  } catch {
-    if (version === generation) status('We could not check your account. Try again before making a payment.', true);
-  } finally {
-    busy = false;
-    $('continuePayment').disabled = false;
-    $('changeAccount').disabled = false;
+  if (plan !== 'premium' && plan !== 'family') { location.replace('/start.html'); return; }
+  document.getElementById('selectedPlan').textContent = plan === 'family' ? 'Family' : 'Premium';
+  document.getElementById('selectedPrice').textContent = plan === 'family' ? '$9.99 / month' : '$4.99 / month';
+  function attemptId() {
+    const key = 'billsavings.checkout-attempt.' + plan;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(key) || 'null');
+      if (saved?.expires > Date.now() && /^[0-9a-f-]{36}$/i.test(saved.id)) return saved.id;
+    } catch {}
+    const id = crypto.randomUUID();
+    try { sessionStorage.setItem(key, JSON.stringify({ id, expires: Date.now() + 1800000 })); } catch {}
+    return id;
   }
-}
-
-$('continuePayment').addEventListener('click', continueToPayment);
-$('changeAccount').addEventListener('click', async () => {
-  if (busy) return;
-  generation++;
-  const {error} = await supabase.auth.signOut({scope: 'local'});
-  if (error) { status('Could not sign out. Please try again.', true); return; }
-  $('checkoutAuth').hidden = false; $('accountReady').hidden = true;
-  auth.setMode('signin');
-});
-$('showPassword').addEventListener('click', () => {
-  const visible = $('authPassword').type === 'password';
-  $('authPassword').type = visible ? 'text' : 'password';
-  $('showPassword').textContent = visible ? 'Hide password' : 'Show password';
-  $('showPassword').setAttribute('aria-pressed', String(visible));
-});
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'PASSWORD_RECOVERY') recovering = true;
-  auth.handleAuthEvent(event, session);
-  if (event === 'SIGNED_OUT') {
-    generation++; $('checkoutAuth').hidden = false; $('accountReady').hidden = true;
+  const attempt = attemptId();
+  const timeout = promise => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('account_check_unavailable')), 12000))]);
+  async function checkout() {
+    if (busy) return;
+    busy = true; retry.hidden = true; manual.hidden = true;
+    message('Opening secure Stripe checkout…');
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      let savedSession = false;
+      try { savedSession = !!sessionStorage.getItem('billsavings.account.v1'); } catch {}
+      // Existing signed-in subscribers retain duplicate-payment protection.
+      // New customers do not enter account details or load the auth SDK here.
+      if (savedSession) {
+        const { supabase } = await timeout(import('./account-session.js'));
+        const { data, error } = await timeout(supabase.auth.getSession());
+        if (error) throw new Error('account_check_unavailable');
+        if (data?.session?.access_token) headers.Authorization = 'Bearer ' + data.session.access_token;
+      }
+      const response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify({ plan, attempt }), signal: AbortSignal.timeout(30000), cache: 'no-store', referrerPolicy: 'no-referrer' });
+      const data = await response.json().catch(() => ({}));
+      if (response.status === 409 && data.error === 'already_subscribed') {
+        message('Your plan already exists. Opening your account instead of charging again…');
+        location.replace('/start.html?access=ready'); return;
+      }
+      if (!response.ok) throw new Error(data.error || 'checkout_unavailable');
+      const target = new URL(data.checkout_url);
+      if (target.origin !== 'https://checkout.stripe.com') throw new Error('checkout_unavailable');
+      try { localStorage.setItem('billsavings.purchase-plan', JSON.stringify({ plan, expires: Date.now() + 3600000 })); } catch {}
+      manual.href = target.href; manual.hidden = false;
+      try { if (typeof window.bsLiveEvent === 'function') void window.bsLiveEvent('checkout_start'); } catch {}
+      location.assign(target.href);
+    } catch (error) {
+      message(error.message === 'rate_limited' ? 'Please wait a minute, then try again.' : ['sign_in_required', 'account_check_unavailable'].includes(error.message) ? 'We could not check your saved account. Refresh or use the sign-in link below before paying again.' : 'Checkout could not open. No payment was taken by this attempt. Please try again.');
+      retry.hidden = false;
+    } finally { busy = false; }
   }
-});
-
-if (!plan) {
-  auth.setBusy(true);
-  $('continuePayment').disabled = true;
-  status('Choose a plan to continue.', true);
-} else {
-  $('selectedPlan').textContent = plan === 'family' ? 'Family' : 'Premium';
-  $('selectedPrice').textContent = plan === 'family' ? '$9.99' : '$4.99';
-  rememberPlan();
-  try {
-    await refreshAccount();
-    if (recovering && !callbackFailed) await auth.showRecovery();
-    if (callbackFailed) {
-      history.replaceState(null, '', `/checkout.html?plan=${plan}`);
-      status('This email link has expired. Sign in or request a new password reset.', true);
-    }
-  } catch {
-    status('Your account could not load. Please refresh and try again.', true);
-  }
-}
+  retry.addEventListener('click', checkout);
+  void checkout();
+})();
