@@ -97,25 +97,16 @@
       const hp=$('hRecentPayments');
       const payments=d.recent_payments?.smallhelpnow||[];
       if(hp){
-        if(!payments.length){hp.innerHTML='<div class="empty">No payments yet.</div>';}
-        else hp.innerHTML=payments.map(p=>{
-          const who=(p.name||p.email||'Anonymous supporter');
-          const amount='
-      $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-      $('status').textContent='Known bots excluded · auto-refresh every 15 seconds · online = recent user activity within ~60 seconds';
-    }catch(e){$('updated').textContent='Connection error';$('status').textContent=e.message||'Could not refresh live data.';}
-  }
-  function openDashboard(){if(!key)return;$('login').classList.add('hide');$('dashboard').classList.remove('hide');void load();setInterval(load,15000);}
-  $('open').addEventListener('click',()=>{key=$('key').value.trim();if(!key)return;$('loginStatus').textContent='';try{sessionStorage.setItem('bs_live_dashboard_key',key);}catch{}openDashboard();});
-  $('key').addEventListener('keydown',e=>{if(e.key==='Enter')$('open').click();});
-  if(key)openDashboard();
-})();
-</script>
-<script src="/dashboard-sales.js?v=20260924-sales2" defer></script></body></html>
-+(Number(p.amount_cents||0)/100).toFixed(2);
-          const time=p.created_at?new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
-          return '<div class="traffic-row"><span title="'+String(who).replace(/"/g,'&quot;')+'">'+String(who)+'</span><b>'+amount+' · '+time+'</b></div>';
-        }).join('');
+        if(!payments.length){
+          hp.innerHTML='<div class="empty">No payments yet.</div>';
+        }else{
+          hp.innerHTML=payments.map(p=>{
+            const who=(p.name||p.email||'Anonymous supporter');
+            const amount='$'+(Number(p.amount_cents||0)/100).toFixed(2);
+            const time=p.created_at?new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
+            return '<div class="traffic-row"><span title="'+String(who).replace(/"/g,'&quot;')+'">'+String(who)+'</span><b>'+amount+' · '+time+'</b></div>';
+          }).join('');
+        }
       }
       $('updated').textContent='Updated '+new Date(d.generated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
       $('status').textContent='Known bots excluded · auto-refresh every 15 seconds · online = recent user activity within ~60 seconds';
