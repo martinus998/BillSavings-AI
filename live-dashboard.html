@@ -75,7 +75,7 @@
     if(!key)return;
     try{
       const res=await fetch(endpoint,{headers:{Authorization:'Bearer '+key},cache:'no-store'});
-      if(!res.ok){if(res.status===401)throw new Error('Wrong dashboard key.');throw new Error('Live data unavailable.');}
+      if(!res.ok){if(res.status===401){try{sessionStorage.removeItem('bs_live_dashboard_key');}catch{}key='';$('dashboard').classList.add('hide');$('login').classList.remove('hide');$('loginStatus').textContent='Wrong or expired dashboard key. Enter the current key.';return;}throw new Error('Live data unavailable.');}
       const d=await res.json();
       const b=d.sites?.billsavings||{}, r=d.sites?.repaircostmatch||{}, sc=d.sites?.safeorscamcheck||{}, a=d.sites?.autoratefinder||{}, h=d.sites?.smallhelpnow||{}, t=d.total||{};
       set('tOnline',t.online_now);set('tVisitors',t.visitors_today);set('tSessions',t.sessions_today);set('tViews',t.pageviews_today);
