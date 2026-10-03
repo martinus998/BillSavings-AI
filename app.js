@@ -2,7 +2,7 @@
 // Only align checkout reassurance with the restored pay-first flow.
 (() => {
   const source = document.createElement('script');
-  source.src = '/homepage-app-preserved-86548c7.js';
+  source.src = '/homepage-app-preserved-86548c7.js?v=20261003';
   source.onload = () => {
     const alignCopy = () => {
       document.querySelectorAll('#conversion-proof span').forEach(el => {
@@ -16,7 +16,7 @@
     // Acceptance information only; existing buttons still use Stripe checkout.
     if (!document.querySelector('script[data-fast-checkout-labels]')) {
       const wallets = document.createElement('script');
-      wallets.src = '/fast-checkout-labels.js?v=20260925-wallets1';
+      wallets.src = '/fast-checkout-labels.js?v=20261003';
       wallets.dataset.fastCheckoutLabels = '1';
       document.head.append(wallets);
     }

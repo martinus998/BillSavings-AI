@@ -159,7 +159,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
         <article class="premium-action-card"><span>3</span><b>Track it</b><small>Mark the provider contacted and let BillSavings compare the item with your next bill review.</small></article>
         <article class="premium-action-card"><span>4</span><b>Confirm it</b><small>Tell BillSavings whether it was resolved, is still there, or the amount changed.</small></article>
       </div>
-      <div class="premium-action-footer"><p>If one removable monthly charge of $9 is actually removed, that charge alone is roughly the same as the $4.99 Premium monthly price. This is an illustration, not a savings guarantee.</p><a class="btn primary" href="/start.html">Start with BillSavings AI →</a></div>`;
+      <div class="premium-action-footer"><p>If one removable monthly charge of $9 is actually removed, the $9 charge is greater than the $4.99 Premium monthly price. This is an illustration, not a savings guarantee.</p><a class="btn primary" href="/start.html">Start with BillSavings AI →</a></div>`;
     pricing.insertAdjacentElement('afterend', section);
   }
 
@@ -181,7 +181,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     const pricing = document.getElementById('pricing');
     if (!hero || !dashboard || !pricing) return;
 
-    dashboard.id = dashboard.id || 'sample-result';
+    dashboard.id = dashboard.id || 'sample-dashboard';
 
     const kicker = hero.querySelector('.kicker');
     const title = hero.querySelector('h1');
@@ -193,8 +193,8 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     // Only attach the safe destinations and analytics labels here.
     if (ctaButtons[0]) {
       ctaButtons[0].textContent = 'Choose Your Plan →';
-      ctaButtons[0].setAttribute('href', '/start.html');
-      ctaButtons[0].dataset.bsCta = 'free_preview';
+      ctaButtons[0].setAttribute('href', '#pricing');
+      ctaButtons[0].dataset.bsCta = 'choose_plan';
     }
     if (ctaButtons[1]) {
       ctaButtons[1].textContent = 'View Sample Analysis ↓';
@@ -306,3 +306,4 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountKeepMoreValue, { once: true });
   else mountKeepMoreValue();
 })();
+

@@ -1,0 +1,16 @@
+/* Clear examples and purchase information, matching the existing site theme. */
+.purchase-example,.purchase-faq{box-sizing:border-box;margin:22px 0;padding:22px;border:1px solid #49728e;border-radius:18px;background:#061c32;color:#edf7ff}
+.purchase-example h2,.purchase-faq h2{font-size:clamp(21px,3vw,28px);line-height:1.2;margin:5px 0 10px;color:#fff}
+.purchase-example p,.purchase-faq p{font-size:14px;line-height:1.6;color:#c8deec;margin:9px 0}
+.purchase-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:#73e8c4}
+.purchase-example details,.purchase-faq details{padding:13px 0;border-top:1px solid #31536c}
+.purchase-example summary,.purchase-faq summary{min-height:32px;cursor:pointer;font-size:15px;font-weight:750;line-height:1.5;color:#fff}
+.purchase-example summary:focus-visible,.purchase-faq summary:focus-visible{outline:2px solid #75eac8;outline-offset:5px}
+.purchase-example ul,.purchase-example ol{padding-left:21px;color:#d6e8f4;font-size:14px;line-height:1.65}
+.purchase-example li{margin:9px 0}.purchase-example .purchase-price{font-weight:750;color:#fff}
+.purchase-example a,.purchase-faq a{color:#82edce}.purchase-example .purchase-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:10px;padding:5px 16px;border-radius:10px;background:#ff9b3d;color:#102033;text-decoration:none;font-size:14px;font-weight:850}
+.purchase-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:13px 0}.purchase-metrics div{padding:12px 9px;border-radius:10px;background:#0d304b}.purchase-metrics small{display:block;color:#b7d2e3;font-size:11px}.purchase-metrics strong{display:block;margin-top:5px;font-size:20px;color:#fff}
+.review-retry{min-height:44px;padding:9px 14px;border:1px solid #74debd;border-radius:9px;background:#103b54;color:#fff;font:700 14px system-ui;cursor:pointer}.review-retry[hidden]{display:none}
+.review-copy .purchase-example{padding:15px;margin-top:17px}.review-copy .purchase-example h2{font-size:22px}.review-copy .purchase-example p{font-size:13px}
+@media(max-width:600px){.purchase-example,.purchase-faq{padding:17px;margin:16px 0}.purchase-example p,.purchase-faq p,.purchase-example li{font-size:14px}.purchase-metrics{grid-template-columns:1fr}.purchase-metrics div{display:flex;justify-content:space-between;align-items:center}.purchase-metrics strong{margin:0}.purchase-example summary,.purchase-faq summary{min-height:44px}}
+@media print{.purchase-example,.purchase-faq,.review-retry{display:none!important}}

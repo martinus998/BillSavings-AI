@@ -61,12 +61,12 @@
       target.insertAdjacentElement(position, box);
     }
     if (bill) {
-      add(q('body.dashboard-home .hero>.nav'), 'afterend', 'fx-wallets-home');
+
       const pricing = q('#pricing');
       if (pricing) add(pricing.querySelector('.pricingGrid') || pricing.firstElementChild, 'beforebegin', 'fx-wallets-plans');
     }
     if (auto) {
-      add(q('.review-layout'), 'beforebegin', 'fx-wallets-home');
+
       add(q('#reviewPay'), 'afterend', 'fx-wallets-checkout', true);
     }
     if (safe) {
@@ -77,7 +77,7 @@
       new MutationObserver(pricingNotice).observe(modal, {childList:true});
     }
     if (repair) {
-      add(q('header'), 'afterend', 'fx-wallets-home', false, true);
+
       const pro = q('#pro-package');
       add(pro.querySelector('.pro-secure-access') || pro.lastElementChild, 'beforebegin', 'fx-wallets-plans', true);
     }
@@ -85,3 +85,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, {once:true});
   else mount();
 })();
+
