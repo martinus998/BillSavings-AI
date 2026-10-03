@@ -97,13 +97,13 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
 
   const navStart = document.querySelector('.nav-actions .paidBtn');
   if (navStart) navStart.textContent = 'Get Started →';
-  bind(navStart, '/start.html');
+  bind(navStart, '#pricing');
 
   const heroUpload = Array.from(document.querySelectorAll('.cta .btn')).find(el => /upload a bill/i.test(el.textContent || ''));
   bind(heroUpload, '/start.html');
 
   const bannerStart = Array.from(document.querySelectorAll('.banner .btn')).find(el => /get started today/i.test(el.textContent || ''));
-  bind(bannerStart, '/start.html');
+  bind(bannerStart, '#pricing');
 
   const freeBtn = Array.from(document.querySelectorAll('#pricing .plan .btn')).find(el => /get started free/i.test(el.textContent || ''));
   bind(freeBtn, '/start.html');
@@ -129,7 +129,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     const premium = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Premium');
     const family = plans.find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
     if (premium?.querySelector('ul')) {
-      premium.querySelector('ul').innerHTML = '<li>Everything in Free</li><li>Unlock all supported savings findings</li><li>Detailed bill-review results</li><li>Fix-it call and email scripts for flagged items</li><li>Track contacted items on the next bill</li><li>Confirm resolved, still there, or amount changed</li><li>Priority support</li>';
+      premium.querySelector('ul').innerHTML = '<li>Supported bill uploads and analysis</li><li>Unlock all supported savings findings</li><li>Detailed bill-review results</li><li>Fix-it call and email scripts for flagged items</li><li>Track contacted items on the next bill</li><li>Confirm resolved, still there, or amount changed</li><li>Priority support</li>';
     }
     if (family?.querySelector('ul')) {
       family.querySelector('ul').innerHTML = '<li>Everything in Premium</li><li>Expanded household bill review</li><li>Shared household savings workflow</li><li>More supported uploads</li><li>Fix-it scripts and next-bill follow-up</li><li>Premium support</li>';
@@ -159,7 +159,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
         <article class="premium-action-card"><span>3</span><b>Track it</b><small>Mark the provider contacted and let BillSavings compare the item with your next bill review.</small></article>
         <article class="premium-action-card"><span>4</span><b>Confirm it</b><small>Tell BillSavings whether it was resolved, is still there, or the amount changed.</small></article>
       </div>
-      <div class="premium-action-footer"><p>If one removable monthly charge of $9 is actually removed, the $9 charge is greater than the $4.99 Premium monthly price. This is an illustration, not a savings guarantee.</p><a class="btn primary" href="/start.html">Start with BillSavings AI →</a></div>`;
+      <div class="premium-action-footer"><p>If one removable monthly charge of $9 is actually removed, the $9 charge is greater than the $4.99 Premium monthly price. This is an illustration, not a savings guarantee.</p><a class="btn primary" href="#pricing">Choose a plan →</a></div>`;
     pricing.insertAdjacentElement('afterend', section);
   }
 
@@ -281,8 +281,8 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
       </div>
       <div class="keep-more-cta">
         <strong>Find one removable $9 monthly charge?</strong>
-        <span>That one charge alone is roughly the price of a month of Premium.</span>
-        <a class="btn primary" data-bs-cta="value_pricing" href="/start.html">Choose a Plan →</a>
+        <span>That sample charge is greater than the $4.99 monthly Premium price. Removal depends on your provider and plan.</span>
+        <a class="btn primary" data-bs-cta="value_pricing" href="#pricing">Choose a Plan →</a>
       </div>
     `;
 
