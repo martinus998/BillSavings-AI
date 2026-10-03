@@ -2,7 +2,7 @@
 // Only align checkout reassurance with the restored pay-first flow.
 (() => {
   const source = document.createElement('script');
-  source.src = '/homepage-app-preserved-86548c7.js?v=20261003';
+  source.src = '/homepage-app-preserved-86548c7.js?v=20261003-qrprice1';
   source.onload = () => {
     const alignCopy = () => {
       document.querySelectorAll('#conversion-proof span').forEach(el => {

@@ -31,7 +31,7 @@
 @media(max-width:860px){.grid{grid-template-columns:1fr}.plans{grid-template-columns:1fr}.plan ul{min-height:0}.demo-grid{grid-template-columns:1fr}.sample-bill{border-right:0;border-bottom:1px solid rgba(55,103,151,.55)}.steps{grid-template-columns:1fr}.demo-cta{grid-template-columns:1fr}.demo-cta .btn{width:100%}}
 @media(max-width:760px){body{padding:10px}.hero,.card{padding:16px;border-radius:17px}.top{align-items:flex-start}.back{font-size:12px}.price{font-size:30px}.demo{border-radius:20px}.demo-head,.sample-bill,.analysis,.demo-foot{padding:18px}.finding{grid-template-columns:34px 1fr}.amount{grid-column:2;margin-top:3px}.savings{grid-template-columns:1fr}.sample-total{font-size:30px}.demo-head h2{font-size:28px}.real-analysis{padding:14px}.real-analysis-head{display:block}.real-paid-badge{display:inline-block;margin-top:8px}.real-metrics{grid-template-columns:1fr 1fr}.real-finding{grid-template-columns:36px 1fr;padding:12px}.real-finding-num{width:36px;height:36px}.real-finding-top{display:block}.real-finding-top>span{display:inline-block;margin-top:6px}}
 .text-btn{display:block;margin:14px auto 0;background:none;border:0;color:#acd0ff;text-decoration:underline;cursor:pointer;font:inherit;font-size:13px}</style>
-</head>
+<link rel="stylesheet" href="/payment-qr.css"></head>
 <body>
 <main class="shell">
   <div class="top"><a class="brand" href="/"><img src="/logo.svg" alt="BillSavings AI">BillSavings AI</a><nav class="top-links" aria-label="Account navigation"><a class="back" id="entrySignIn" href="/start.html?signin=1">Already have an account? Sign in</a><a class="back" href="/">← Home</a></nav></div>
@@ -76,8 +76,8 @@
     <section class="card" id="pricing">
       <h2>Find the right plan for you</h2><p class="muted">Select your plan below. You will create your account in the next step.</p>
       <div class="plans">
-        <div class="plan pop"><div class="k">Premium</div><h3>Premium</h3><div class="price">$4.99 <span>/ month</span></div><ul><li>Complete supported findings</li><li>Detailed recommendations</li><li>Priority support</li></ul><button class="btn" id="premiumBtn">Choose Premium →</button></div>
-        <div class="plan"><div class="k">Family</div><h3>Family</h3><div class="price">$9.99 <span>/ month</span></div><ul><li>Premium features</li><li>Expanded household workflow</li><li>More supported uploads</li></ul><button class="btn" id="familyBtn">Choose Family →</button></div>
+        <div class="plan pop"><div class="k">Premium</div><h3>Premium</h3><div class="price">$1.99 <span>/ month</span></div><ul><li>Complete supported findings</li><li>Detailed recommendations</li><li>Priority support</li></ul><button class="btn" id="premiumBtn">Choose Premium →</button><a class="qr-entry" href="/checkout.html?plan=premium&amp;method=qr">Pay by QR · $1.99/month</a></div>
+        <div class="plan"><div class="k">Family</div><h3>Family</h3><div class="price">$4.99 <span>/ month</span></div><ul><li>Premium features</li><li>Expanded household workflow</li><li>More supported uploads</li></ul><button class="btn" id="familyBtn">Choose Family →</button><a class="qr-entry" href="/checkout.html?plan=family&amp;method=qr">Pay by QR · $4.99/month</a></div>
       </div>
       <p class="small" style="margin-top:14px">Medical-document uploads remain disabled. Savings estimates are informational and not guaranteed.</p>
     </section>
@@ -132,3 +132,4 @@
 <script type="module" src="/start.js?v=20260918-results2"></script>
 <script src="customer-help.js?v=20260922-pricefix1" defer></script></body>
 </html>
+

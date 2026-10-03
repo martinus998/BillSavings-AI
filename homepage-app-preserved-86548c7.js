@@ -159,7 +159,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
         <article class="premium-action-card"><span>3</span><b>Track it</b><small>Mark the provider contacted and let BillSavings compare the item with your next bill review.</small></article>
         <article class="premium-action-card"><span>4</span><b>Confirm it</b><small>Tell BillSavings whether it was resolved, is still there, or the amount changed.</small></article>
       </div>
-      <div class="premium-action-footer"><p>If one removable monthly charge of $9 is actually removed, the $9 charge is greater than the $4.99 Premium monthly price. This is an illustration, not a savings guarantee.</p><a class="btn primary" href="#pricing">Choose a plan →</a></div>`;
+      <div class="premium-action-footer"><p>If one removable monthly charge of $9 is actually removed, the $9 charge is greater than the $1.99 Premium monthly price. This is an illustration, not a savings guarantee.</p><a class="btn primary" href="#pricing">Choose a plan →</a></div>`;
     pricing.insertAdjacentElement('afterend', section);
   }
 
@@ -214,8 +214,8 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
     const family = Array.from(pricing.querySelectorAll('.plan')).find(plan => (plan.querySelector('h3')?.textContent || '').trim() === 'Family');
     const premiumBtn = premium?.querySelector('.paidBtn');
     const familyBtn = family?.querySelector('.paidBtn');
-    if (premiumBtn) premiumBtn.textContent = 'Unlock Premium — $4.99/mo';
-    if (familyBtn) familyBtn.textContent = 'Choose Family — $9.99/mo';
+    if (premiumBtn) premiumBtn.textContent = 'Unlock Premium — $1.99/mo';
+    if (familyBtn) familyBtn.textContent = 'Choose Family — $4.99/mo';
 
     // The refreshed mobile homepage keeps the primary CTA inside the hero.
     // Do not add the old fixed bottom conversion bar because it hides content.
@@ -271,9 +271,9 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
       <div class="keep-more-copy">
         <div class="kicker">KEEP MORE OF WHAT YOU SAVE</div>
         <h2>A flat monthly price. No cut of your savings.</h2>
-        <p>Some bill-negotiation services charge a percentage of the savings they secure. BillSavings AI uses a simple subscription instead: Premium is $4.99/month and we do not take a success fee from savings you achieve.</p>
+        <p>Some bill-negotiation services charge a percentage of the savings they secure. BillSavings AI uses a simple subscription instead: Premium is $1.99/month and we do not take a success fee from savings you achieve.</p>
         <div class="keep-more-points">
-          <span><b>$4.99/mo</b><small>Premium launch price</small></span>
+          <span><b>$1.99/mo</b><small>Premium launch price</small></span>
           <span><b>0%</b><small>of your savings taken by BillSavings</small></span>
           <span><b>100%</b><small>of any savings you achieve stays with you</small></span>
         </div>
@@ -281,7 +281,7 @@ window.BILLSAVINGS_CONFIG = { status: 'live', market: 'US', currency: 'USD' };
       </div>
       <div class="keep-more-cta">
         <strong>Find one removable $9 monthly charge?</strong>
-        <span>That sample charge is greater than the $4.99 monthly Premium price. Removal depends on your provider and plan.</span>
+        <span>That sample charge is greater than the $1.99 monthly Premium price. Removal depends on your provider and plan.</span>
         <a class="btn primary" data-bs-cta="value_pricing" href="#pricing">Choose a Plan →</a>
       </div>
     `;

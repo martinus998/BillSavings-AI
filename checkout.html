@@ -8,15 +8,16 @@
 <title>Secure payment | BillSavings AI</title><link rel="icon" href="/logo.svg" type="image/svg+xml">
 <style>
 [hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;padding:24px 16px;background:#03101f;color:#f4f8ff;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.shell{max-width:580px;margin:auto}a{color:#acd4ff}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:8px 0 24px}.brand{font-weight:800;color:white;text-decoration:none}.card{padding:26px;border:1px solid #21476e;border-radius:22px;background:linear-gradient(150deg,#0c2544,#071a31)}h1{font-size:29px;line-height:1.2;margin:0 0 12px}.summary{display:flex;justify-content:space-between;gap:12px;padding:16px;margin:20px 0;border:1px solid #29557e;border-radius:14px;background:#07182d}.summary strong{display:block;font-size:20px}.status{padding:14px;border:1px solid #27577d;background:#0b2942;border-radius:12px}.muted{color:#aec5de}.btn{display:block;width:100%;padding:15px;border:1px solid #31b8ff;border-radius:12px;background:linear-gradient(120deg,#079deb,#215bed);color:white;text-align:center;text-decoration:none;font:inherit;font-weight:800;cursor:pointer;margin-top:12px}.small{font-size:14px;color:#a4bdd5}.footer{display:flex;justify-content:center;gap:20px;margin:24px 0;font-size:14px}@media(max-width:440px){.card{padding:20px}.top{font-size:14px}.summary{flex-direction:column;gap:4px}}
-</style></head>
+</style><link rel="stylesheet" href="/payment-qr.css"></head>
 <body data-checkout-build="pay-first-20260925"><main class="shell">
 <header class="top"><a class="brand" href="/">BillSavings AI</a><a href="/start.html">Back to plans</a></header>
 <section class="card"><h1>Continue to secure payment</h1><p class="muted">No BillSavings registration before payment. Enter your email and payment details securely on Stripe.</p>
 <div class="summary"><strong id="selectedPlan">Your plan</strong><strong id="selectedPrice">—</strong></div>
 <p id="checkoutStatus" class="status" role="status" aria-live="polite">Preparing your checkout…</p>
 <button class="btn" id="checkoutRetry" type="button" hidden>Try again</button><a class="btn" id="checkoutContinue" hidden>Continue to Stripe →</a>
-<p class="small">Monthly subscription · Cancel anytime. After payment, return here to securely activate or sign in to your account using your checkout email.</p>
+<button class="qr-entry" id="checkoutQr" type="button" hidden>Pay by QR code</button><p class="small">Monthly subscription · Cancel anytime. After payment, return here to securely activate or sign in to your account using your checkout email.</p>
 <p class="small">Already subscribed? <a href="/start.html?signin=1">Sign in to your account</a> — you do not need to pay again.</p>
 <noscript><p>Please enable JavaScript to open secure checkout. No payment has been taken on this page.</p></noscript>
 </section><footer class="footer"><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/contact.html">Help</a></footer>
-</main><script src="/checkout.js?v=20260925-pay-first1"></script><script defer src="/live-tracker.js?v=20260924-funnel1"></script></body></html>
+</main><script src="/payment-qr.js?v=20261003-1"></script><script src="/checkout.js?v=20261003-qr1"></script><script defer src="/live-tracker.js?v=20260924-funnel1"></script></body></html>
+

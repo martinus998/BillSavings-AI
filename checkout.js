@@ -1,72 +1,28 @@
-// Choose a plan -> Stripe. No registration form is shown before payment.
 (() => {
-  'use strict';
-  const endpoint = 'https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/billsavings-checkout';
-  const query = new URLSearchParams(location.search);
-  const plan = query.get('plan');
-  const status = document.getElementById('checkoutStatus');
-  const retry = document.getElementById('checkoutRetry');
-  const manual = document.getElementById('checkoutContinue');
-  let busy = false;
-  const message = text => { status.textContent = text; };
-  const hash = new URLSearchParams(location.hash.slice(1));
-  if (hash.has('access_token') || hash.has('refresh_token') || hash.has('error') || hash.has('error_code') || query.has('session_id')) {
-    const target = new URL('/start.html', location.origin);
-    if (query.has('session_id')) { target.searchParams.set('checkout', 'return'); target.searchParams.set('session_id', query.get('session_id')); }
-    else target.searchParams.set('access', 'ready');
-    target.hash = location.hash;
-    location.replace(target.href);
-    return;
-  }
-  if (plan !== 'premium' && plan !== 'family') { location.replace('/start.html'); return; }
-  document.getElementById('selectedPlan').textContent = plan === 'family' ? 'Family' : 'Premium';
-  document.getElementById('selectedPrice').textContent = plan === 'family' ? '$9.99 / month' : '$4.99 / month';
-  function attemptId() {
-    const key = 'billsavings.checkout-attempt.' + plan;
-    try {
-      const saved = JSON.parse(sessionStorage.getItem(key) || 'null');
-      if (saved?.expires > Date.now() && /^[0-9a-f-]{36}$/i.test(saved.id)) return saved.id;
-    } catch {}
-    const id = crypto.randomUUID();
-    try { sessionStorage.setItem(key, JSON.stringify({ id, expires: Date.now() + 1800000 })); } catch {}
-    return id;
-  }
-  const attempt = attemptId();
-  const timeout = promise => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('account_check_unavailable')), 12000))]);
-  async function checkout() {
-    if (busy) return;
-    busy = true; retry.hidden = true; manual.hidden = true;
-    message('Opening secure Stripe checkout…');
-    try {
-      const headers = { 'Content-Type': 'application/json' };
-      let savedSession = false;
-      try { savedSession = !!sessionStorage.getItem('billsavings.account.v1'); } catch {}
-      // Existing signed-in subscribers retain duplicate-payment protection.
-      // New customers do not enter account details or load the auth SDK here.
-      if (savedSession) {
-        const { supabase } = await timeout(import('./account-session.js'));
-        const { data, error } = await timeout(supabase.auth.getSession());
-        if (error) throw new Error('account_check_unavailable');
-        if (data?.session?.access_token) headers.Authorization = 'Bearer ' + data.session.access_token;
-      }
-      const response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify({ plan, attempt }), signal: AbortSignal.timeout(30000), cache: 'no-store', referrerPolicy: 'no-referrer' });
-      const data = await response.json().catch(() => ({}));
-      if (response.status === 409 && data.error === 'already_subscribed') {
-        message('Your plan already exists. Opening your account instead of charging again…');
-        location.replace('/start.html?access=ready'); return;
-      }
-      if (!response.ok) throw new Error(data.error || 'checkout_unavailable');
-      const target = new URL(data.checkout_url);
-      if (target.origin !== 'https://checkout.stripe.com') throw new Error('checkout_unavailable');
-      try { localStorage.setItem('billsavings.purchase-plan', JSON.stringify({ plan, expires: Date.now() + 3600000 })); } catch {}
-      manual.href = target.href; manual.hidden = false;
-      try { if (typeof window.bsLiveEvent === 'function') void window.bsLiveEvent('checkout_start'); } catch {}
-      location.assign(target.href);
-    } catch (error) {
-      message(error.message === 'rate_limited' ? 'Please wait a minute, then try again.' : ['sign_in_required', 'account_check_unavailable'].includes(error.message) ? 'We could not check your saved account. Refresh or use the sign-in link below before paying again.' : 'Checkout could not open. No payment was taken by this attempt. Please try again.');
-      retry.hidden = false;
-    } finally { busy = false; }
-  }
-  retry.addEventListener('click', checkout);
-  void checkout();
+ 'use strict';
+ const CONFIG={"app": "billsavings_ai", "endpoint": "billsavings-checkout", "choices": {"premium": {"amount": 199, "label": "Premium", "interval": "USD \u00b7 monthly subscription \u00b7 renews until canceled"}, "family": {"amount": 499, "label": "Family", "interval": "USD \u00b7 monthly subscription \u00b7 renews until canceled"}}, "note": "After paying, return here to activate or sign in using the email you entered at checkout."};
+ const endpoint='https://bkyuyqicybqqifenhhux.supabase.co/functions/v1/'+CONFIG.endpoint;
+ const params=new URLSearchParams(location.search),option=CONFIG.app==='billsavings_ai'?params.get('plan'):CONFIG.app==='smallhelpnow'?params.get('amount'):'pro';
+ const queryHash=new URLSearchParams(location.hash.slice(1));
+ if(CONFIG.app==='billsavings_ai'&&(params.has('session_id')||queryHash.has('access_token')||queryHash.has('refresh_token')||queryHash.has('error')||queryHash.has('error_code'))){const u=new URL('/start.html',location.origin);u.search=params.has('session_id')?'?checkout=return&session_id='+encodeURIComponent(params.get('session_id')):'?access=ready';u.hash=location.hash;location.replace(u.href);return;}
+ if(!Object.hasOwn(CONFIG.choices,option)){location.replace(CONFIG.app==='billsavings_ai'?'/start.html':'/');return;}
+ const status=document.getElementById('checkoutStatus'),retry=document.getElementById('checkoutRetry'),manual=document.getElementById('checkoutContinue'),qrButton=document.getElementById('checkoutQr');
+ document.getElementById('selectedPlan').textContent=CONFIG.choices[option].label;document.getElementById('selectedPrice').textContent='$'+(CONFIG.choices[option].amount/100).toFixed(2)+(CONFIG.app==='billsavings_ai'?' / month':' one-time');
+ const timeout=p=>Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error('account_check_unavailable')),12000))]);
+ const request=async body=>{
+   const headers={'Content-Type':'application/json'};
+   if(CONFIG.app==='billsavings_ai'){let saved=false;try{saved=!!sessionStorage.getItem('billsavings.account.v1');}catch{}if(saved){const {supabase}=await timeout(import('./account-session.js'));const {data,error}=await timeout(supabase.auth.getSession());if(error)throw new Error('account_check_unavailable');if(data.session?.access_token)headers.Authorization='Bearer '+data.session.access_token;}}
+   const response=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(30000),cache:'no-store',referrerPolicy:'no-referrer'});const data=await response.json();if(!response.ok)throw new Error(data.error||'checkout_unavailable');return data;
+ };
+ const normalKey=CONFIG.app+'.checkout-request.v1';let normal;
+ try{normal=JSON.parse(sessionStorage.getItem(normalKey)||'null');if(normal?.option!==option||normal.expires<Date.now()||!/^[a-f0-9]{64}$/.test(normal.token||'')||!/^[a-f0-9-]{36}$/i.test(normal.attempt||''))normal=null;}catch{}
+ if(!normal){normal={option,token:Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join(''),attempt:crypto.randomUUID(),expires:Date.now()+1800000};try{sessionStorage.setItem(normalKey,JSON.stringify(normal));}catch{}}
+ const remember=(data,token)=>{if(CONFIG.app==='billsavings_ai'){try{localStorage.setItem('billsavings.purchase-plan',JSON.stringify({plan:option,expires:Date.now()+3600000}));}catch{}}if(CONFIG.app==='repaircostmatch')localStorage.setItem('rcm.checkout-owner.v1',JSON.stringify({session_id:data.session_id,token,expires_at:data.expires_at}));};
+ const errorMessage=error=>{if(error.message==='already_subscribed'){location.replace('/start.html?access=ready');return;}status.textContent=['sign_in_required','account_check_unavailable'].includes(error.message)?'We could not check your saved account. Sign in before paying again.':'Checkout is temporarily unavailable. Retry this request before starting another payment.';retry.hidden=false;};
+ const make=async (draft,qr)=>{const data=await request({action:'checkout',...(CONFIG.app==='billsavings_ai'?{plan:draft.option}:CONFIG.app==='smallhelpnow'?{amount:draft.option}:{offer:'pro'}),token:draft.token,attempt:draft.attempt,...(qr?{checkout_channel:'qr'}:{})});remember(data,draft.token);return data;};
+ const q=new PaymentQr({key:CONFIG.app+'.qr.v1',choices:CONFIG.choices,note:CONFIG.note,create:d=>make(d,true),status:(action,p)=>request({action,session_id:p.session_id,token:p.token}),onPaid:async(data,p)=>{if(CONFIG.app==='billsavings_ai'){location.assign('/start.html?checkout=success&session_id='+encodeURIComponent(p.session_id));}else if(CONFIG.app==='repaircostmatch'){location.assign('/?pro_live=success&session_id='+encodeURIComponent(p.session_id));}else{status.textContent='Thank you! Your support payment is confirmed.';manual.hidden=true;qrButton.hidden=true;}},onError:errorMessage,onCancelled:()=>{status.textContent='Checkout cancelled. Choose QR or card to create a new payment.';sessionStorage.removeItem(normalKey);normal.attempt=crypto.randomUUID();qrButton.hidden=false;retry.hidden=false;}});
+ let busy=false;
+ async function checkout(){if(q.hasPending)return q.resume();if(busy)return;busy=true;retry.hidden=true;status.textContent='Opening secure Stripe checkout…';try{const data=await make(normal,false),u=new URL(data.url);if(u.origin!=='https://checkout.stripe.com'||u.username||u.password||u.pathname!=='/c/pay/'+data.session_id)throw new Error('invalid_checkout');manual.href=u.href;manual.hidden=false;location.assign(u.href);}catch(error){errorMessage(error);}finally{busy=false;}}
+ retry.addEventListener('click',()=>params.get('method')==='qr'?q.prepare(option):checkout());qrButton.addEventListener('click',()=>q.prepare(option));
+ if(q.hasPending){qrButton.hidden=false;void q.resume();}else if(params.get('method')==='qr'){qrButton.hidden=false;status.textContent='Scan the QR or open the same Stripe checkout here.';void q.prepare(option);}else void checkout();
 })();

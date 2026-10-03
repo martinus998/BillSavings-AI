@@ -15,16 +15,17 @@ function setup({search = `?checkout=success&session_id=${proof}`, results = [], 
       const classes = new Set();
       elements.set(id, {hidden: true, textContent: '', disabled: false, focused: false,
         classList: {add: c => classes.add(c), remove: c => classes.delete(c), contains: c => classes.has(c)},
-        closest: () => element('card'), scrollIntoView() {}, insertBefore() {}, focus() {this.focused = true;},
+        closest: () => element('card'), scrollIntoView() {}, insertBefore() {}, insertAdjacentElement() {}, focus() {this.focused = true;},
         addEventListener(name, fn) {this[name] = fn;}
       });
     }
     return elements.get(id);
   }
   const context = {URLSearchParams, Date, AbortSignal,
+    MutationObserver: class {observe(){}},
     location: {search, pathname: '/start.html', hash: ''},
     history: {replaceState: (_a,_b,path) => {replaced = path;}},
-    document: {getElementById: element},
+    document: {createElement: () => element('accessEmailBtn'), getElementById: element},
     sessionStorage: {getItem: k => storage.get(k), setItem: (k,v) => storage.set(k,v), removeItem: k => storage.delete(k)},
     setTimeout(fn, delay) {
       const id = ++timerId;
@@ -62,10 +63,10 @@ test('signed-out and mismatched buyers get password sign-in without sending emai
       const x = setup({session, results: [{state, account_matches: false}]});
       await x.flow.start();
       assert.deepEqual(x.requests.map(r => r.action), ['status']);
-      assert.equal(x.element('accessTitle').textContent, 'Sign in to use your plan');
-      assert.equal(x.element('loginBox').classList.contains('hidden'), false);
+      assert.match(x.element('accessTitle').textContent, /Payment confirmed|Check your checkout email|Access your paid account/);
+      assert.equal(x.element('loginBox').classList.contains('hidden'), true);
       assert.match(x.element('accessMessage').textContent, /password/);
-      if (session) assert.match(x.element('accessMessage').textContent, /does not match/);
+      assert.match(x.element('accessMessage').textContent, /checkout email|email used on Stripe/);
       x.element('accessManualBtn').click();
       assert.equal(x.element('authEmail').focused, true);
       assert.equal(x.claims, 0);
@@ -78,7 +79,7 @@ test('a restored checkout receipt also uses password sign-in', async () => {
   const x = setup({search: '', stored: {id: proof, expires: Date.now() + 60000}, results: [{state: 'sent'}]});
   await x.flow.start();
   assert.deepEqual(x.requests.map(r => r.action), ['status']);
-  assert.equal(x.element('accessTitle').textContent, 'Sign in to use your plan');
+  assert.match(x.element('accessTitle').textContent, /Payment confirmed|Check your checkout email|Access your paid account/);
 });
 
 test('matching authenticated buyer activates through the server claim and clears all checkout flags', async () => {
@@ -100,7 +101,7 @@ test('success query, invalid proof and unmatched account never grant purchased a
     await x.flow.start();
     assert.equal(x.requests.length, 0);
     assert.equal(x.claims, 0);
-    assert.equal(x.element('accessTitle').textContent, 'Sign in to use your plan');
+    assert.match(x.element('accessTitle').textContent, /Payment confirmed|Check your checkout email|Access your paid account/);
   }
   const x = setup({session: signedIn, results: [{state: 'ready', account_matches: true}]});
   await x.flow.start();
@@ -148,9 +149,9 @@ test('a signed-in account can recover its own subscription after receipt expiry'
 });
 
 test('email confirmation callback discards stale payment proof and leaves normal account claiming available', async () => {
-  const x = setup({search: '?access=ready', stored: {id: proof, expires: Date.now() + 60000}});
+  const x = setup({search: '?access=ready', stored: {id: proof, expires: Date.now() + 60000}, results:[{state:'account_ready',account_matches:true}]});
   await x.flow.start();
-  assert.equal(x.requests.length, 0);
+  assert.deepEqual(x.requests.map(r=>r.action), ['confirm_email']);
   assert.equal(x.storage.size, 0);
   assert.equal(x.flow.hasCheckout(), false);
   await x.flow.onSignIn();
@@ -212,3 +213,4 @@ test('sign-in callback releases the Supabase auth lock before payment or account
   await new Promise(setImmediate);
   assert.equal(claimed, true);
 });
+

@@ -66,6 +66,7 @@ export function createCheckoutAccess({supabase, endpoint, publicKey, claimPaidAc
         if(response.result.state!=='pending')break;if(i<5)await new Promise(resolve=>setTimeout(resolve,2000));
       }
       const result=response.result;if(await finish(result,version))return;
+      if(result.state==='expired'&&response.signedIn){const active=await claimPaidAccess();if(version!==generation)return;if(active){reset();return;}}
       if(result.state==='ready'||result.state==='sent')offerEmail(result);
       else if(result.state==='pending')panel('Waiting for payment confirmation','Stripe confirmation has not arrived yet. Check again shortly. If you paid, do not pay again.','Check payment again',5);
       else if(['expired','limit_reached','sign_in_required','verification_required'].includes(result.state)){
@@ -104,3 +105,4 @@ export function createCheckoutAccess({supabase, endpoint, publicKey, claimPaidAc
     async onSignIn(){if(busy){signInPending=true;return;}if(sessionId||returned)await run();else{const version=generation;const active=await claimPaidAccess();if(version===generation&&active)reset();}}
   };
 }
+

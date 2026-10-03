@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const app = fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+const app = fs.readFileSync(new URL('../homepage-app-preserved-86548c7.js', import.meta.url), 'utf8');
 const analytics = fs.readFileSync(new URL('../analytics.js', import.meta.url), 'utf8');
 const help = fs.readFileSync(new URL('../customer-help.js', import.meta.url), 'utf8');
 const onboarding = fs.readFileSync(new URL('../paid-onboarding.js', import.meta.url), 'utf8');
@@ -64,3 +64,4 @@ test('keep-more marketing explains the price model without overclaiming competit
   assert.match(app, /you contact the provider yourself/);
   assert.doesNotMatch(app, /cheapest|cheaper than all|lowest price|guaranteed savings/i);
 });
+

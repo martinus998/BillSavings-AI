@@ -276,7 +276,7 @@ test('an active paid plan clears the remembered purchase and hides its button', 
 });
 
 test('homepage entry buttons distinguish plans, returning sign-in and free preview', () => {
-  const homepage = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const homepage = readFileSync(new URL('../homepage-app-preserved-86548c7.js', import.meta.url), 'utf8');
   const button = (textContent, plan) => {
     const handlers = new Map();
     return {textContent, tagName: 'BUTTON', dataset: {plan},
@@ -293,9 +293,10 @@ test('homepage entry buttons distinguish plans, returning sign-in and free previ
     querySelector: selector => selector === '.nav-actions .paidBtn' ? getStarted : null,
     querySelectorAll: selector => lists[selector] || []
   }});
-  for (const [control, path] of [[getStarted, '/start.html'], [signIn, '/start.html?signin=1'],
+  for (const [control, path] of [[getStarted, '#pricing'], [signIn, '/start.html?signin=1'],
     [upload, '/start.html'], [premium, '/checkout.html?plan=premium'], [family, '/checkout.html?plan=family']]) {
     control.click();
     assert.equal(location.href, path);
   }
 });
+
